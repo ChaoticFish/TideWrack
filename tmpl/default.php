@@ -26,8 +26,10 @@ if (!$items) {
 }
 
 $uid        = 'twk-' . (int) $module->id;
-$style      = $params->get('style', 'grid');
-$style      = in_array($style, ['grid', 'frontpage', 'contactsheet', 'tideline', 'list', 'masonry'], true) ? $style : 'grid';
+// The setting is twk_layout: Joomla's own Module Style field (Advanced tab) is named "style" and overwrote it.
+$layouts    = ['grid', 'frontpage', 'contactsheet', 'tideline', 'list', 'masonry'];
+$style      = (string) $params->get('twk_layout', '');
+$style      = in_array($style, $layouts, true) ? $style : (in_array($params->get('style'), $layouts, true) ? $params->get('style') : 'grid');
 $cols       = max(2, min(4, (int) $params->get('columns', 3)));
 $hLevel     = max(2, min(4, (int) $params->get('heading_level', 3)));
 $showFilter = (int) $params->get('show_filters', 1) && $tags;

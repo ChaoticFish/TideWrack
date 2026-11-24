@@ -2,6 +2,11 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.0.3 — 2026-11-10
+
+### Fixed
+- **Layout wouldn't save.** The Layout setting was named `style`, the same name as Joomla's own Module Style field on the Advanced tab, which Joomla adds to every module after the module's settings. On save Joomla's value won, so every layout fell back to Grid. The setting is now `twk_layout`. After updating, open the module, pick the layout again and save; the Module Style field is Joomla's again and works normally.
+
 ## 1.0.2 — 2026-11-10
 
 ### Added

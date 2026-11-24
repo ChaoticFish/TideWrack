@@ -6,7 +6,7 @@
 	<creationDate>2026-10</creationDate>
 	<copyright>(C) 2026 Chaotic Fish Design Studio</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<description>MOD_TIDEWRACK_XML_DESCRIPTION</description>
 	<scriptfile>script.php</scriptfile>
 	<namespace path="src">ChaoticFishDesign\Module\Tidewrack</namespace>
@@ -96,7 +96,7 @@
 			</fieldset>
 
 			<fieldset name="display" label="MOD_TIDEWRACK_FIELDSET_DISPLAY">
-				<field name="style" type="list" default="grid" label="MOD_TIDEWRACK_STYLE_LABEL" description="MOD_TIDEWRACK_STYLE_DESC">
+				<field name="twk_layout" type="list" default="grid" label="MOD_TIDEWRACK_STYLE_LABEL" description="MOD_TIDEWRACK_STYLE_DESC">
 					<option value="grid">MOD_TIDEWRACK_STYLE_GRID</option>
 					<option value="frontpage">MOD_TIDEWRACK_STYLE_FRONTPAGE</option>
 					<option value="contactsheet">MOD_TIDEWRACK_STYLE_CONTACTSHEET</option>
@@ -104,12 +104,12 @@
 					<option value="list">MOD_TIDEWRACK_STYLE_LIST</option>
 					<option value="masonry">MOD_TIDEWRACK_STYLE_MASONRY</option>
 				</field>
-				<field name="columns" type="list" default="3" showon="style!:tideline[AND]style!:list" label="MOD_TIDEWRACK_COLUMNS_LABEL">
+				<field name="columns" type="list" default="3" showon="twk_layout!:tideline[AND]twk_layout!:list" label="MOD_TIDEWRACK_COLUMNS_LABEL">
 					<option value="2">2</option>
 					<option value="3">3</option>
 					<option value="4">4</option>
 				</field>
-				<field name="view_toggle" type="radio" default="0" showon="style!:list" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
+				<field name="view_toggle" type="radio" default="0" showon="twk_layout!:list" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>

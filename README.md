@@ -2,7 +2,7 @@
 
 **Sorts what washes up.** A lightweight Joomla module that pulls articles from chosen categories into filterable, sortable cards with six layouts.
 
-By Chaotic Fish Design Studio · Version 1.0.2 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
+By Chaotic Fish Design Studio · Version 1.0.3 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
 
 ---
 
@@ -27,7 +27,7 @@ The installer checks PHP and Joomla first and stops with a plain message if eith
 
 ## Install
 
-1. Extensions → Install → upload `mod_tidewrack-1.0.2.zip`.
+1. Extensions → Install → upload `mod_tidewrack-1.0.3.zip`.
 2. Content → Site Modules → New → **Tidewrack**.
 3. Pick at least one category, assign a position and menu items, save.
 
@@ -239,6 +239,7 @@ Against the Sample Articles category (ID 13):
 - [ ] ShrinkRay copies produce a `srcset` pointing into `images/_sized/…` (view source), including for an image in a subfolder.
 - [ ] A11y Toolbar: High Contrast shows which chips are pressed; Reading Overlay keeps pressed chips and Contact Sheet readable.
 - [ ] Emoji / ampersand / quotes in titles display correctly.
+- [ ] Each layout **saves** (pick it, Save, reopen: still selected) and shows on the site; Advanced → Module Style still saves independently.
 - [ ] All six layouts at desktop and phone widths, light and dark.
 - [ ] A shared filter link restores the view.
 - [ ] Extras on and off.
