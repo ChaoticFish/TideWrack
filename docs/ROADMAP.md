@@ -1,6 +1,6 @@
 # Tidewrack (mod_tidewrack): roadmap
 
-Current release: **1.2.0** (built 2026-11-24; 1.1.1 live until uploaded). Plain Joomla 5/6 site module, no package wrapper. Element `mod_tidewrack`, client `site`, `twk-` prefix. Built with its own `build.py`.
+Current release: **1.2.0** (2026-11-24). Plain Joomla 5/6 site module, no package wrapper. Element `mod_tidewrack`, client `site`, `twk-` prefix. Built with its own `build.py`.
 
 ## 1.1.1
 
@@ -23,7 +23,7 @@ Current release: **1.2.0** (built 2026-11-24; 1.1.1 live until uploaded). Plain 
 
 - Live slots: hero `{loadmoduleid 140}`, second (Layouts section) `{loadmoduleid 139}`. Demo links relative: `/files/demos/tidewrack-demo.html`. jDownloads: module is file 11 (`/downloads/send/4-cfd-developed/11-module-tidewrack`, `{jd_file file==11}`), cheat sheet is file 22 (`/downloads/send/7-training/22-cheat-sheet-tidewrack`, `{jd_file file==22}`). Cheat sheet links from the hero buttons and its own "For your writers" section.
 
-## 1.2.0 (built 2026-11-24, not yet tested on a live Joomla site)
+## 1.2.0 (2026-11-24)
 
 Install zip 130 KB, SHA-256 `d6357cfdef7347562b5bb4fcd1690f3fa39387d5c7b0b36de20015136691425e`; the update-server XML is generated from that exact zip. Upload the zip to jDownloads 11 and the XML files to `/updates/` together.
 
@@ -39,7 +39,7 @@ Install zip 130 KB, SHA-256 `d6357cfdef7347562b5bb4fcd1690f3fa39387d5c7b0b36de20
 - Demo: carries a cards render and a table render, swaps them live (`window.TidewrackBoot()`), fakes the pop-up fetch from sample articles.
 - Cheat sheet rebuilt for 1.2.0 (chips, pop-up, picture-only, article order); its assets now live in `cheatsheet/assets/`.
 - Landing page: hero copy, four new feature cards, Table in Layouts, specs (weight ~9 KB JS + 7 KB CSS gzipped, zip ~130 KB, pop-up access, install check, errors), 1.2.0 changelog.
-- Tested: Chromium (every layout × top/left sidebar × full/picture-only with all four Extras, no errors, no horizontal overflow), pop-up by mouse and keyboard, deep links, Ctrl-click, touch captions, light/dark; SQL against SQLite with Joomla's database package 3.x (Joomla 5) and 4.x (Joomla 6): access rules, all sorts, featured first, years by each date, pop-up access by module/article. Not tested: a real Joomla site, com_ajax routing with SEF/multilingual, settings saves.
+- Tested: Chromium (every layout × top/left sidebar × full/picture-only with all four Extras, no errors, no horizontal overflow), pop-up by mouse and keyboard, deep links, Ctrl-click, touch captions, light/dark; SQL against SQLite with Joomla's database package 3.x (Joomla 5) and 4.x (Joomla 6): access rules, all sorts, featured first, years by each date, pop-up access by module/article. Fishie's hand test (2026-11-24): good in Chromium browsers.
 
 ## Ideas not yet built
 
