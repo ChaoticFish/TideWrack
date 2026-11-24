@@ -6,7 +6,7 @@
 	<creationDate>2026-10</creationDate>
 	<copyright>(C) 2026 Chaotic Fish Design Studio</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>1.1.1</version>
+	<version>1.2.0</version>
 	<description>MOD_TIDEWRACK_XML_DESCRIPTION</description>
 	<scriptfile>script.php</scriptfile>
 	<namespace path="src">ChaoticFishDesign\Module\Tidewrack</namespace>
@@ -57,6 +57,11 @@
 					<option value="mod_desc">MOD_TIDEWRACK_SORT_MOD_DESC</option>
 					<option value="mod_asc">MOD_TIDEWRACK_SORT_MOD_ASC</option>
 					<option value="title_asc">MOD_TIDEWRACK_SORT_TITLE_ASC</option>
+					<option value="order_asc">MOD_TIDEWRACK_SORT_ORDER_ASC</option>
+				</field>
+				<field name="featured_first" type="radio" default="0" label="MOD_TIDEWRACK_FEATUREDFIRST_LABEL" description="MOD_TIDEWRACK_FEATUREDFIRST_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
 				<field name="sort_visitor" type="radio" default="1" label="MOD_TIDEWRACK_SORT_VISITOR_LABEL" description="MOD_TIDEWRACK_SORT_VISITOR_DESC">
 					<option value="1">JYES</option>
@@ -89,6 +94,25 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field name="show_cats" type="radio" default="0" showon="show_filters:1" label="MOD_TIDEWRACK_SHOWCATS_LABEL" description="MOD_TIDEWRACK_SHOWCATS_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_years" type="radio" default="0" showon="show_filters:1" label="MOD_TIDEWRACK_SHOWYEARS_LABEL" description="MOD_TIDEWRACK_SHOWYEARS_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="year_date" type="list" default="published" showon="show_filters:1[AND]show_years:1" label="MOD_TIDEWRACK_YEARDATE_LABEL" description="MOD_TIDEWRACK_YEARDATE_DESC">
+					<option value="published">MOD_TIDEWRACK_DATETYPE_PUBLISHED</option>
+					<option value="created">MOD_TIDEWRACK_DATETYPE_CREATED</option>
+					<option value="modified">MOD_TIDEWRACK_DATETYPE_MODIFIED</option>
+				</field>
+				<field name="filter_position" type="list" default="top" label="MOD_TIDEWRACK_FILTERPOS_LABEL" description="MOD_TIDEWRACK_FILTERPOS_DESC">
+					<option value="top">MOD_TIDEWRACK_FILTERPOS_TOP</option>
+					<option value="left">MOD_TIDEWRACK_FILTERPOS_LEFT</option>
+					<option value="right">MOD_TIDEWRACK_FILTERPOS_RIGHT</option>
+				</field>
+				<field name="sticky_offset" type="number" default="16" min="0" max="400" step="1" filter="integer" showon="filter_position!:top" label="MOD_TIDEWRACK_STICKY_LABEL" description="MOD_TIDEWRACK_STICKY_DESC" />
 				<field name="cast_line" type="radio" default="1" label="MOD_TIDEWRACK_CAST_LABEL" description="MOD_TIDEWRACK_CAST_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
@@ -107,8 +131,21 @@
 					<option value="tideline">MOD_TIDEWRACK_STYLE_TIDELINE</option>
 					<option value="list">MOD_TIDEWRACK_STYLE_LIST</option>
 					<option value="masonry">MOD_TIDEWRACK_STYLE_MASONRY</option>
+					<option value="table">MOD_TIDEWRACK_STYLE_TABLE</option>
 				</field>
-				<field name="columns" type="list" default="3" showon="twk_layout!:tideline[AND]twk_layout!:list" label="MOD_TIDEWRACK_COLUMNS_LABEL">
+				<field name="card_content" type="list" default="full" showon="twk_layout!:table" label="MOD_TIDEWRACK_CARDCONTENT_LABEL" description="MOD_TIDEWRACK_CARDCONTENT_DESC">
+					<option value="full">MOD_TIDEWRACK_CARDCONTENT_FULL</option>
+					<option value="image">MOD_TIDEWRACK_CARDCONTENT_IMAGE</option>
+				</field>
+				<field name="image_badges" type="radio" default="1" showon="twk_layout!:table[AND]card_content:image" label="MOD_TIDEWRACK_IMAGEBADGES_LABEL" description="MOD_TIDEWRACK_IMAGEBADGES_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="click_action" type="list" default="page" label="MOD_TIDEWRACK_CLICK_LABEL" description="MOD_TIDEWRACK_CLICK_DESC">
+					<option value="page">MOD_TIDEWRACK_CLICK_PAGE</option>
+					<option value="popup">MOD_TIDEWRACK_CLICK_POPUP</option>
+				</field>
+				<field name="columns" type="list" default="3" showon="twk_layout!:tideline[AND]twk_layout!:list[AND]twk_layout!:table" label="MOD_TIDEWRACK_COLUMNS_LABEL">
 					<option value="2">2</option>
 					<option value="3">3</option>
 					<option value="4">4</option>
@@ -117,7 +154,7 @@
 					<option value="1">1</option>
 					<option value="2">2</option>
 				</field>
-				<field name="view_toggle" type="radio" default="0" showon="twk_layout!:list" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
+				<field name="view_toggle" type="radio" default="0" showon="twk_layout!:list[AND]twk_layout!:table" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>

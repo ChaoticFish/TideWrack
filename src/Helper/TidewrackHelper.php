@@ -12,6 +12,7 @@ use Joomla\CMS\Application\CMSApplicationInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Multilanguage;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
@@ -32,6 +33,16 @@ final class TidewrackHelper implements DatabaseAwareInterface
     /** Tags kept in intro text. <b> and <i> are normalised to <strong> and <em>. */
     private const KEEP = ['strong', 'em', 'br'];
 
+    /** Sorts the server can apply (the browser re-sorts the same way with the data attributes). */
+    private const ORDER = [
+        'pub_desc'  => 'pub_date DESC',
+        'pub_asc'   => 'pub_date ASC',
+        'mod_desc'  => 'mod_date DESC',
+        'mod_asc'   => 'mod_date ASC',
+        'title_asc' => 'a.title ASC',
+        'order_asc' => 'c.lft ASC, a.ordering ASC',
+    ];
+
     /**
      * Load the articles this visitor is allowed to see.
      *
@@ -41,26 +52,81 @@ final class TidewrackHelper implements DatabaseAwareInterface
      */
     public function getItems(Registry $params, CMSApplicationInterface $app): array
     {
-        $catIds = array_values(array_filter(array_map('intval', (array) $params->get('catid', []))));
+        $query = $this->visibleQuery($params, $app);
 
-        if (!$catIds) {
+        if ($query === null) {
             return [];
         }
 
-        $db     = $this->getDatabase();
+        $db    = $this->getDatabase();
+        $limit = max(1, min(100, (int) $params->get('max_items', 60)));
+
+        if ((int) $params->get('featured_first', 0)) {
+            $query->order('a.featured DESC');
+        }
+
+        $query->order(self::ORDER[$params->get('sort_default', 'pub_desc')] ?? self::ORDER['pub_desc'])
+            ->order('a.id DESC')
+            ->setLimit($limit);
+
+        $rows = $db->setQuery($query)->loadObjectList();
+
+        if (!$rows) {
+            return [];
+        }
+
+        $tagMap = $this->loadTags(array_map(static fn ($r) => (int) $r->id, $rows), $this->levels($app), $params);
+        $items  = [];
+
+        foreach ($rows as $row) {
+            $items[] = $this->buildItem($row, $tagMap[(int) $row->id] ?? [], $params);
+        }
+
+        // "Article order": the order editors set in the Articles list, category by category (tree order).
+        $ranked = $rows;
+        usort($ranked, static fn ($a, $b) => [(int) $a->cat_lft, (int) $a->ordering, -(int) $a->id] <=> [(int) $b->cat_lft, (int) $b->ordering, -(int) $b->id]);
+        $rank = array_flip(array_map(static fn ($r) => (int) $r->id, $ranked));
+
+        foreach ($items as $item) {
+            $item->ord = $rank[$item->id] ?? 0;
+        }
+
+        return $items;
+    }
+
+    /** View levels for this visitor (Public when there is no user). */
+    private function levels(CMSApplicationInterface $app): array
+    {
         $user   = $app->getIdentity();
         $levels = $user ? array_values(array_unique(array_map('intval', $user->getAuthorisedViewLevels()))) : [1];
-        $levels = $levels ?: [1];
+
+        return $levels ?: [1];
+    }
+
+    /**
+     * Every article this module may show this visitor, before sorting and limits.
+     * Shared by the board and by the pop-up, so both apply exactly the same rules.
+     */
+    private function visibleQuery(Registry $params, CMSApplicationInterface $app)
+    {
+        $catIds = array_values(array_filter(array_map('intval', (array) $params->get('catid', []))));
+
+        if (!$catIds) {
+            return null;
+        }
+
+        $db     = $this->getDatabase();
+        $levels = $this->levels($app);
         $now    = Factory::getDate()->toSql();
-        $limit  = max(1, min(100, (int) $params->get('max_items', 60)));
 
         $query = $this->newQuery()
             ->select([
                 'a.id', 'a.title', 'a.alias', 'a.catid', 'a.introtext', 'a.fulltext', 'a.images',
-                'a.created', 'a.created_by_alias', 'a.featured', 'a.language',
+                'a.created', 'a.created_by_alias', 'a.featured', 'a.language', 'a.ordering',
                 'COALESCE(a.publish_up, a.created) AS pub_date',
                 'COALESCE(a.modified, a.created) AS mod_date',
                 $db->quoteName('c.title', 'category_title'),
+                $db->quoteName('c.lft', 'cat_lft'),
                 $db->quoteName('u.name', 'author_name'),
             ])
             ->from($db->quoteName('#__content', 'a'))
@@ -117,31 +183,127 @@ final class TidewrackHelper implements DatabaseAwareInterface
             $query->whereIn($db->quoteName('a.language'), [$app->getLanguage()->getTag(), '*'], ParameterType::STRING);
         }
 
-        $order = [
-            'pub_desc'  => 'pub_date DESC',
-            'pub_asc'   => 'pub_date ASC',
-            'mod_desc'  => 'mod_date DESC',
-            'mod_asc'   => 'mod_date ASC',
-            'title_asc' => 'a.title ASC',
+        return $query;
+    }
+
+    /**
+     * The pop-up's article, through com_ajax:
+     * index.php?option=com_ajax&module=tidewrack&method=article&format=json&mid=<module id>&id=<article id>&Itemid=<page>
+     *
+     * The module is looked up by ID (published, site, visible to this visitor), and the article must pass the
+     * same query the board uses for that module, so the pop-up can never show more than the board would.
+     *
+     * Failures are returned, not thrown: com_ajax doesn't catch a module helper's exceptions, but it does
+     * turn a returned exception into a JSON answer with success false, which the script handles.
+     */
+    public function articleAjax(): array|\Throwable
+    {
+        $app = Factory::getApplication();
+        $in  = $app->getInput();
+        $mid = $in->getInt('mid');
+        $id  = $in->getInt('id');
+
+        try {
+            $params = $this->moduleParams($mid, $app);
+            $query  = $params ? $this->visibleQuery($params, $app) : null;
+            $row    = null;
+
+            if ($query && $id > 0) {
+                $query->where('a.id = :aid')->bind(':aid', $id, ParameterType::INTEGER);
+                $row = $this->getDatabase()->setQuery($query, 0, 1)->loadObject();
+            }
+        } catch (\Throwable $e) {
+            self::logError($e, 'pop-up, article ' . $id . ', module ' . $mid);
+
+            return new \RuntimeException('This article could not be loaded.', 500);
+        }
+
+        if (!$row) {
+            return new \RuntimeException('This article is not available.', 404);
+        }
+
+        $images = json_decode((string) $row->images, true) ?: [];
+        $text   = (string) $row->introtext . (string) $row->fulltext;
+        $html   = HTMLHelper::_('content.prepare', $text, '', 'mod_tidewrack.popup');
+        $image  = '';
+
+        // Like Joomla's article view: the Full Article Image; the Intro Image only when the text has no picture of its own.
+        foreach (['fulltext', 'intro'] as $slot) {
+            if (!empty($images['image_' . $slot]) && ($slot === 'fulltext' || !preg_match('/<img\b/i', $text))) {
+                $clean = HTMLHelper::cleanImageURL($images['image_' . $slot]);
+                $image = '<figure class="twk-dialog-figure"><img src="' . htmlspecialchars($clean->url, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+                    . '" alt="' . htmlspecialchars((string) ($images['image_' . $slot . '_alt'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8') . '"></figure>';
+                break;
+            }
+        }
+
+        return [
+            'id'   => (int) $row->id,
+            'html' => self::absoluteUrls($image . $html),
         ];
-        $query->order($order[$params->get('sort_default', 'pub_desc')] ?? $order['pub_desc'])
-            ->order('a.id DESC')
-            ->setLimit($limit);
+    }
 
-        $rows = $db->setQuery($query)->loadObjectList();
-
-        if (!$rows) {
-            return [];
+    /** A published site Tidewrack module this visitor can see, by ID, or null. */
+    private function moduleParams(int $mid, CMSApplicationInterface $app): ?Registry
+    {
+        if ($mid <= 0) {
+            return null;
         }
 
-        $tagMap = $this->loadTags(array_map(static fn ($r) => (int) $r->id, $rows), $levels, $params);
-        $items  = [];
+        $db    = $this->getDatabase();
+        $query = $this->newQuery()
+            ->select($db->quoteName('params'))
+            ->from($db->quoteName('#__modules'))
+            ->where($db->quoteName('id') . ' = :mid')
+            ->where($db->quoteName('module') . ' = ' . $db->quote('mod_tidewrack'))
+            ->where($db->quoteName('client_id') . ' = 0')
+            ->where($db->quoteName('published') . ' = 1')
+            ->whereIn($db->quoteName('access'), $this->levels($app))
+            ->bind(':mid', $mid, ParameterType::INTEGER);
+        $raw = $db->setQuery($query)->loadResult();
 
-        foreach ($rows as $row) {
-            $items[] = $this->buildItem($row, $tagMap[(int) $row->id] ?? [], $params);
+        return $raw === null ? null : new Registry($raw);
+    }
+
+    /**
+     * Relative src/href in article text are relative to the site root, but the pop-up shows them on
+     * whatever page the module sits on; make them root-relative so images and links still work.
+     */
+    public static function absoluteUrls(string $html): string
+    {
+        $base = rtrim(Uri::root(true), '/') . '/';
+
+        return preg_replace_callback(
+            '#\b(src|href|poster|srcset)\s*=\s*(["\'])(.*?)\2#is',
+            static function ($m) use ($base) {
+                $fix = static function ($url) use ($base) {
+                    $url = trim($url);
+
+                    return ($url === '' || preg_match('#^([a-z][a-z0-9+.-]*:|//|/|\#|\?|\{)#i', $url)) ? $url : $base . $url;
+                };
+                $val = strtolower($m[1]) === 'srcset'
+                    ? implode(', ', array_map(static fn ($part) => $fix($part), explode(',', $m[3])))
+                    : $fix($m[3]);
+
+                return $m[1] . '=' . $m[2] . $val . $m[2];
+            },
+            $html
+        ) ?? $html;
+    }
+
+    /** Errors visitors shouldn't see go to the site's log folder as mod_tidewrack.errors.php. */
+    public static function logError(\Throwable $e, string $where): void
+    {
+        try {
+            Log::addLogger(['text_file' => 'mod_tidewrack.errors.php'], Log::ALL, ['mod_tidewrack']);
+            Log::add(
+                $where . ': ' . \get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(),
+                Log::ERROR,
+                'mod_tidewrack'
+            );
+        } catch (\Throwable $ignored) {
+            // Logging must never take the page down with it.
         }
-
-        return $items;
     }
 
     /** createQuery() on Joomla 5+/6; getQuery(true) is deprecated there but kept as a fallback. */
@@ -206,6 +368,45 @@ final class TidewrackHelper implements DatabaseAwareInterface
         return array_values($tags);
     }
 
+    /** The year an article files under for the year filter: created, published (the default) or modified. */
+    /** Distinct categories across the loaded items, with counts, A–Z. */
+    public function getFilterCats(array $items): array
+    {
+        $cats = [];
+
+        foreach ($items as $item) {
+            $cats[$item->catid] ??= (object) ['id' => $item->catid, 'title' => $item->category, 'count' => 0];
+            $cats[$item->catid]->count++;
+        }
+
+        uasort($cats, static fn ($a, $b) => strcasecmp($a->title, $b->title));
+
+        return array_values($cats);
+    }
+
+    /** Distinct years across the loaded items, with counts, newest first. */
+    public function getFilterYears(array $items): array
+    {
+        $years = [];
+
+        foreach ($items as $item) {
+            if ($item->year > 0) {
+                $years[$item->year] = ($years[$item->year] ?? 0) + 1;
+            }
+        }
+
+        krsort($years);
+
+        return array_map(static fn ($y, $n) => (object) ['id' => $y, 'title' => (string) $y, 'count' => $n], array_keys($years), $years);
+    }
+
+    private static function year(object $row, string $basis): int
+    {
+        $date = ['created' => $row->created, 'modified' => $row->mod_date][$basis] ?? $row->pub_date;
+
+        return (int) substr((string) $date, 0, 4);
+    }
+
     private function buildItem(object $row, array $tags, Registry $params): object
     {
         $intro = (string) $row->introtext;
@@ -228,6 +429,9 @@ final class TidewrackHelper implements DatabaseAwareInterface
             'author'   => $row->created_by_alias ?: (string) $row->author_name,
             'category' => $row->category_title,
             'featured' => (int) $row->featured === 1,
+            'catid'    => (int) $row->catid,
+            'year'     => self::year($row, (string) $params->get('year_date', 'published')),
+            'ord'      => 0,
             'readtime' => max(1, (int) ceil($words / $wpm)),
             'tags'     => array_values($tags),
         ];

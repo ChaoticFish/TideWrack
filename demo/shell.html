@@ -18,13 +18,23 @@
 <header class="mb-4">
 <p class="text-uppercase small fw-semibold text-secondary mb-1">Chaotic Fish Design Studio</p>
 <h1 class="display-6 fw-bold mb-2">Tidewrack</h1>
-<p class="lead mb-0">Sorts what washes up. Filter by tag, search, sort, cast a line, and switch layouts. This page runs the real module template, stylesheet and script (version {{VERSION}}) with sample articles.</p>
+<p class="lead mb-0">Sorts what washes up. Filter by tag, category or year, search, sort, cast a line, read in a pop-up, and switch layouts. This page runs the real module template, stylesheet and script (version {{VERSION}}) with sample articles.</p>
 </header>
 <section class="demo-panel" aria-label="Demo controls">
 <div><label class="form-label" for="demo-style">Layout</label>
 <select class="form-select form-select-sm" id="demo-style">
-<option value="grid" selected>Grid</option><option value="frontpage">Front Page</option><option value="contactsheet">Contact Sheet</option><option value="tideline">Tide Line</option><option value="list">Magazine List</option><option value="masonry">Masonry</option>
+<option value="grid" selected>Grid</option><option value="frontpage">Front Page</option><option value="contactsheet">Contact Sheet</option><option value="tideline">Tide Line</option><option value="list">Magazine List</option><option value="masonry">Masonry</option><option value="table">Table</option>
 </select></div>
+<div><label class="form-label" for="demo-content">Card content</label>
+<select class="form-select form-select-sm" id="demo-content"><option value="full" selected>Full</option><option value="image">Picture only</option><option value="bare">Picture only, no badges</option></select></div>
+<div><label class="form-label" for="demo-side">Filters</label>
+<select class="form-select form-select-sm" id="demo-side"><option value="" selected>Top</option><option value="left">Left sidebar</option><option value="right">Right sidebar</option></select></div>
+<div><label class="form-label" for="demo-click">Clicking a card</label>
+<select class="form-select form-select-sm" id="demo-click"><option value="popup" selected>Opens a pop-up</option><option value="page">Goes to the article</option></select></div>
+<div><label class="form-label" for="demo-chips">Extra chips</label>
+<select class="form-select form-select-sm" id="demo-chips"><option value="1" selected>Categories and years</option><option value="0">Tags only</option></select></div>
+<div><label class="form-label" for="demo-feat">Featured first</label>
+<select class="form-select form-select-sm" id="demo-feat"><option value="0" selected>No</option><option value="1">Yes</option></select></div>
 <div><label class="form-label" for="demo-cols">Columns</label>
 <select class="form-select form-select-sm" id="demo-cols"><option>2</option><option selected>3</option><option>4</option></select></div>
 <div><label class="form-label" for="demo-lcols">Magazine columns</label>
@@ -33,40 +43,72 @@
 <select class="form-select form-select-sm" id="demo-art"><option value="tide" selected>Tide</option><option value="shore">Shoreline</option><option value="gradient">Gradient</option></select></div>
 <div><label class="form-label" for="demo-theme">Theme</label>
 <select class="form-select form-select-sm" id="demo-theme"><option value="light" selected>Light</option><option value="dark">Dark</option></select></div>
-<p class="demo-hint">Three sample articles have no image, so they show the no-image art; hover one to set the tide moving. Open a few articles and they're marked <em>Beachcombed</em>. Search box: <kbd>Esc</kbd> clears it.</p>
-<p class="demo-hint">The staff: press <em>Do not press</em>, or type <kbd>fishie</kbd>, <kbd>claude</kbd>, <kbd>kokido</kbd>, <kbd>hawke</kbd> or <kbd>tancho</kbd> anywhere outside the search box. Filter down to nothing to meet Tancho properly.</p>
+<p class="demo-hint">Click a card to read it in the pop-up; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> step through the articles that match your filters, and the address bar keeps your place, so the link opens the same article. The sidebar sticks beside the cards from 992px wide; narrower, it goes back on top. Three sample articles have no image, so they show the no-image art.</p>
+<p class="demo-hint">The staff: press <em>Do not press</em>, or type <kbd>fishie</kbd>, <kbd>claude</kbd>, <kbd>kokido</kbd>, <kbd>hawke</kbd> or <kbd>tancho</kbd> anywhere outside the search box. Filter down to nothing to meet Tancho or Ziggy.</p>
 </section>
-{{MODULE}}
+<div id="demo-slot">{{MODULE}}</div>
+<template id="demo-cards">{{MODULE}}</template>
+<template id="demo-table">{{TABLE}}</template>
 </main>
+<script>
+// The demo has no Joomla behind it: the pop-up's article requests are answered from the sample articles.
+(function(){
+var ARTICLES={{ARTICLES}};
+var real=window.fetch?window.fetch.bind(window):null;
+window.fetch=function(url,opts){
+if(String(url).indexOf('demo:article')===0){
+var id=(String(url).match(/[?&]id=(\d+)/)||[])[1];
+var html=ARTICLES[id];
+return new Promise(function(ok){setTimeout(function(){ok({ok:true,json:function(){return Promise.resolve(html?{success:true,data:{id:+id,html:html}}:{success:false});}});},350);});
+}
+return real(url,opts);
+};
+})();
+</script>
 <script>
 {{JS}}
 </script>
 <script>
 (function(){
-var root=document.querySelector('[data-twk]');
 var ART={{ART}};
-var styles=['grid','frontpage','contactsheet','tideline','list','masonry'];
-function inst(){return root.twk;}
-document.getElementById('demo-style').addEventListener('change',function(e){
-var t=inst();styles.forEach(function(s){root.classList.remove('twk--'+s);});
-t.style=e.target.value;t.view=e.target.value;root.classList.add('twk--'+t.style);root.setAttribute('data-twk-style',t.style);
-var v=root.querySelector('[data-twk-view]');if(v){v.setAttribute('data-twk-view',t.style);root.querySelector('.twk-view').hidden=t.style==='list';}
-t.apply(true);
-});
-document.getElementById('demo-cols').addEventListener('change',function(e){
-['2','3','4'].forEach(function(c){root.classList.remove('twk--cols-'+c);});root.classList.add('twk--cols-'+e.target.value);inst().apply(true);
-});
-document.getElementById('demo-lcols').addEventListener('change',function(e){
-root.classList.toggle('twk--lcols-2',e.target.value==='2');inst().apply(true);
-});
-document.getElementById('demo-art').addEventListener('change',function(e){
-Object.keys(ART).forEach(function(id){
+var slot=document.getElementById('demo-slot');
+var layouts=['grid','frontpage','contactsheet','tideline','list','masonry','table'];
+function val(id){return document.getElementById(id).value;}
+function build(){
+var style=val('demo-style');
+var tpl=document.getElementById(style==='table'?'demo-table':'demo-cards');
+var box=document.createElement('div');
+box.appendChild(tpl.content.cloneNode(true));
+var root=box.querySelector('[data-twk]');
+layouts.forEach(function(s){root.classList.remove('twk--'+s);});
+root.classList.add('twk--'+style);
+root.setAttribute('data-twk-style',style);
+['2','3','4'].forEach(function(c){root.classList.remove('twk--cols-'+c);});
+root.classList.add('twk--cols-'+val('demo-cols'));
+root.classList.toggle('twk--lcols-2',val('demo-lcols')==='2');
+var content=style==='table'?'full':val('demo-content');
+root.classList.toggle('twk--imgonly',content!=='full');
+root.classList.toggle('twk--nobadges',content==='bare');
+var side=val('demo-side');
+root.classList.remove('twk--side','twk--side-left','twk--side-right');
+if(side){root.classList.add('twk--side','twk--side-'+side);root.style.setProperty('--twk-sticky-top','16px');}
+if(val('demo-click')==='page'){root.removeAttribute('data-twk-popup');root.classList.remove('twk--popup');}
+root.setAttribute('data-twk-featfirst',val('demo-feat'));
+if(val('demo-chips')==='0'){root.querySelectorAll('.twk-group--cat,.twk-group--year').forEach(function(g){g.remove();});root.classList.remove('twk--groups');}
+var view=root.querySelector('.twk-view');
+if(view){var b=view.querySelector('[data-twk-view]');b.setAttribute('data-twk-view',style);view.hidden=style==='list';}
+var art=val('demo-art');
+if(art!=='tide'){Object.keys(ART).forEach(function(id){
 var m=root.querySelector('[data-twk-card="'+id+'"] .twk-media');if(!m){return;}
 var old=m.querySelector('.twk-art,.twk-media-fallback');if(old){old.remove();}
-m.classList.toggle('twk-media--art',e.target.value!=='gradient');
-m.insertAdjacentHTML('beforeend',e.target.value==='gradient'?'<span class="twk-media-fallback" aria-hidden="true"></span>':ART[id][e.target.value]);
-});
-});
+m.classList.toggle('twk-media--art',art!=='gradient');
+m.insertAdjacentHTML('beforeend',art==='gradient'?'<span class="twk-media-fallback" aria-hidden="true"></span>':ART[id][art]);
+});}
+slot.innerHTML='';
+slot.appendChild(root);
+window.TidewrackBoot();
+}
+['demo-style','demo-content','demo-side','demo-click','demo-chips','demo-feat','demo-cols','demo-lcols','demo-art'].forEach(function(id){document.getElementById(id).addEventListener('change',build);});
 document.getElementById('demo-theme').addEventListener('change',function(e){document.documentElement.setAttribute('data-bs-theme',e.target.value);});
 })();
 </script>

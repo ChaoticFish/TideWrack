@@ -13,7 +13,7 @@ Steps:
      Uses terser and csso when they're on the PATH (as Wayfin's build does), else rjsmin/rcssmin.
   4. Render the standalone demo from the real template (demo/render.php + demo/shell.html, needs PHP),
      with the minified CSS/JS and every image inlined, so it's one self-contained file.
-  5. Write dist/mod_tidewrack-<version>.zip (install), dist/mod_tidewrack-<version>-source.zip
+  5. Write dist/mod_tidewrack-<version>.zip (install, with script.php's expected-file list filled in), dist/mod_tidewrack-<version>-source.zip
      (everything, including this script and demo/) and dist/tidewrack-demo.html.
   6. Call cfd_update.release('mod_tidewrack', <install zip>) from the shared generator, found through
      the CFD_UPDATES environment variable (default: sibling folder ../cfd-updates).
@@ -23,6 +23,7 @@ or the pure-Python minifiers (pip install rjsmin rcssmin).
 """
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -150,19 +151,27 @@ def render_demo(version):
         return
     run = lambda *a: subprocess.run([php, str(ROOT / 'demo' / 'render.php')] + list(a),
                                     capture_output=True, text=True, check=True).stdout
-    module = run('{}')
     art = json.loads(run('--art'))
+    articles = run('--articles').strip()
     uris = {name: data_uri('media/images/' + name, mime) for name, (_, mime) in IMAGES.items()}
-    for name, uri in uris.items():
-        module = module.replace('MEDIA/images/' + name, uri)
     attrs = ''.join(' data-twk-img-%s="%s"' % (key, uris[name]) for name, (key, _) in IMAGES.items())
-    module = module.replace('data-twk-media="MEDIA/"', 'data-twk-media=""' + attrs, 1)
-    if 'MEDIA/' in module:
-        raise BuildError('Demo still has an un-inlined MEDIA/ path.')
+
+    def inline(module):
+        for name, uri in uris.items():
+            module = module.replace('MEDIA/images/' + name, uri)
+        module = module.replace('data-twk-media="MEDIA/"', 'data-twk-media=""' + attrs, 1)
+        if 'MEDIA/' in module:
+            raise BuildError('Demo still has an un-inlined MEDIA/ path.')
+        return module
+
+    # Cards and Table are different markup, so the demo carries both and swaps between them.
+    module = inline(run('{}'))
+    table = inline(run('{"twk_layout":"table","show_category":1}'))
     html = read('demo/shell.html')
     for key, value in (('CSS', read('media/css/tidewrack.min.css').strip()),
                        ('JS', read('media/js/tidewrack.min.js').strip()),
-                       ('ART', json.dumps(art)), ('VERSION', version), ('MODULE', module)):
+                       ('ART', json.dumps(art)), ('ARTICLES', articles), ('VERSION', version),
+                       ('MODULE', module), ('TABLE', table)):
         html = html.replace('{{%s}}' % key, value)
     write('tidewrack-demo.html', html)
 
@@ -177,14 +186,36 @@ def walk(rel):
             yield p
 
 
-def make_zip(target, entries):
+def expected_list(entries):
+    """SHA-256 of every installed file except script.php itself, line endings as \\n, as a PHP array body."""
+    rows = []
+    for rel in entries:
+        for p in walk(rel):
+            name = p.relative_to(ROOT).as_posix()
+            if name == 'script.php':
+                continue
+            digest = hashlib.sha256(p.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+            rows.append("'%s' => '%s'" % (name.replace("'", "\\'"), digest))
+    return ', '.join(rows)
+
+
+def make_zip(target, entries, stamp=False):
+    """stamp=True writes script.php with the expected-file list filled in (the install zip)."""
     target.parent.mkdir(exist_ok=True)
     if target.exists():
         target.unlink()
+    listing = expected_list(entries) if stamp else ''
     with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for rel in entries:
             for p in walk(rel):
-                z.write(p, p.relative_to(ROOT).as_posix())
+                name = p.relative_to(ROOT).as_posix()
+                if stamp and name == 'script.php':
+                    text = p.read_text(encoding='utf-8')
+                    if 'array(/*EXPECTED*/)' not in text:
+                        raise BuildError('script.php has no array(/*EXPECTED*/) placeholder for the file check.')
+                    z.writestr(zipfile.ZipInfo.from_file(p, name), text.replace('array(/*EXPECTED*/)', 'array(' + listing + ')'))
+                    continue
+                z.write(p, name)
     with zipfile.ZipFile(target) as z:
         bad = z.testzip()
         if bad:
@@ -214,7 +245,7 @@ def main():
 
     install = DIST / ('%s-%s.zip' % (ELEMENT, v))
     source = DIST / ('%s-%s-source.zip' % (ELEMENT, v))
-    make_zip(install, INSTALL)
+    make_zip(install, INSTALL, stamp=True)
     make_zip(source, INSTALL + ['build.py', 'demo', 'tidewrack-demo.html'])
     (DIST / 'tidewrack-demo.html').write_bytes((ROOT / 'tidewrack-demo.html').read_bytes())
 

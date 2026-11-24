@@ -1,6 +1,6 @@
 # Tidewrack (mod_tidewrack): roadmap
 
-Current release: **1.1.1** (2026-11-10). Plain Joomla 5/6 site module, no package wrapper. Element `mod_tidewrack`, client `site`, `twk-` prefix. Built with its own `build.py`.
+Current release: **1.2.0** (built 2026-11-24; 1.1.1 live until uploaded). Plain Joomla 5/6 site module, no package wrapper. Element `mod_tidewrack`, client `site`, `twk-` prefix. Built with its own `build.py`.
 
 ## 1.1.1
 
@@ -23,60 +23,27 @@ Current release: **1.1.1** (2026-11-10). Plain Joomla 5/6 site module, no packag
 
 - Live slots: hero `{loadmoduleid 140}`, second (Layouts section) `{loadmoduleid 139}`. Demo links relative: `/files/demos/tidewrack-demo.html`. jDownloads: module is file 11 (`/downloads/send/4-cfd-developed/11-module-tidewrack`, `{jd_file file==11}`), cheat sheet is file 22 (`/downloads/send/7-training/22-cheat-sheet-tidewrack`, `{jd_file file==22}`). Cheat sheet links from the hero buttons and its own "For your writers" section.
 
-## Planned for the next update (1.2.0)
+## 1.2.0 (built 2026-11-24, not yet tested on a live Joomla site)
 
-Collecting items; build them together.
+Install zip 130 KB, SHA-256 `d6357cfdef7347562b5bb4fcd1690f3fa39387d5c7b0b36de20015136691425e`; the update-server XML is generated from that exact zip. Upload the zip to jDownloads 11 and the XML files to `/updates/` together.
 
-### Filters on the side
+- **Read it here (pop-up):** `click_action` page/popup. `TidewrackHelper::articleAjax()` through `com_ajax` (`module=tidewrack&method=article&format=json&mid=&id=&Itemid=`). Looks the module up by ID (published, site, viewer's access), runs the board's own `visibleQuery()` plus `a.id`, so it never shows more than the board. Text through `content.prepare` (context `mod_tidewrack.popup`); relative src/href/srcset made root-relative (`absoluteUrls()`). Full Article Image on top (Intro Image only if the text has no picture). Failures are returned as exceptions, not thrown (com_ajax doesn't catch module helper exceptions; a returned Throwable becomes JSON success false). Native `<dialog>` appended inside the module root so it inherits colours/theme; Prev/Next over the current filtered order (arrow keys), "3 of 12", focus returns to the card ended on; counts for Beachcombed; fetch cached per visit.
+- **Link to one article:** `open=` in the hash; `hashchange` re-reads state. Pop-up off: brings the card into view with the Cast a line wiggle.
+- **Table layout** (`twk_layout=table`): separate markup (`<table>`, row header `th scope=row`, `tbody` is `data-twk-items`, rows are `data-twk-card`). Columns follow date_type/show_category/show_author/show_readtime/show_tags; 56px thumbnail when Show Image. Article and Date headers sort with `aria-sort`. Phones: labelled blocks (`data-label`).
+- **Picture-only cards** (`card_content=image`, `image_badges`): CSS-driven (`twk--imgonly`, `twk--nobadges`); markup still carries meta/intro/tags for search. Caption on hover/focus, always on `(hover: none)` and no-image cards. Beachcombed mark on the picture (`.twk-readmark--pic`). Not for Table.
+- **Filters on the side** (`filter_position` top/left/right, `sticky_offset` default 16): from 992px the module is a grid, bar spans rows 1–4 with `grid-template-rows:auto auto auto 1fr` so its height goes to the last row; sticky with its own scroll; tide gauge (`data-twk-gauge`); chip groups get labels; cols 3→2, 4→3. `--twk-side` sets width (17rem).
+- **Category and year chips** (`show_cats`, `show_years`, `year_date` published/created/modified): `data-twk-facet` on chips; OR within a row, AND across rows; live counts per facet. Rows only render with 2+ values.
+- **Article order** sort (`order_asc`): server ranks by category `lft` then `a.ordering`, passed as `data-twk-ord`. **Featured First** (`featured_first`) in SQL and in the browser sort.
+- **Errors:** Dispatcher catches, `TidewrackHelper::logError()` writes `mod_tidewrack.errors.php`; visitors see nothing, Super Users a one-line alert.
+- **Install check** (the first CFD extension with it): `script.php` has `private $expected = array(/*EXPECTED*/)`; `build.py` fills it with SHA-256 (CRLF→LF) of every install file except script.php when writing the install zip only. Preflight refuses and names missing/changed files.
+- Demo: carries a cards render and a table render, swaps them live (`window.TidewrackBoot()`), fakes the pop-up fetch from sample articles.
+- Cheat sheet rebuilt for 1.2.0 (chips, pop-up, picture-only, article order); its assets now live in `cheatsheet/assets/`.
+- Landing page: hero copy, four new feature cards, Table in Layouts, specs (weight ~9 KB JS + 7 KB CSS gzipped, zip ~130 KB, pop-up access, install check, errors), 1.2.0 changelog.
+- Tested: Chromium (every layout × top/left sidebar × full/picture-only with all four Extras, no errors, no horizontal overflow), pop-up by mouse and keyboard, deep links, Ctrl-click, touch captions, light/dark; SQL against SQLite with Joomla's database package 3.x (Joomla 5) and 4.x (Joomla 6): access rules, all sorts, featured first, years by each date, pop-up access by module/article. Not tested: a real Joomla site, com_ajax routing with SEF/multilingual, settings saves.
 
-Setting: **Filters: Top / Left / Right** (default Top). Prompted by a site that did it with custom CSS. Bar and cards are already siblings inside `.twk`, so it's mostly CSS: a wrapper class plus a grid.
+## Ideas not yet built
 
-- Drop back to Top below ~992px.
-- Card columns drop by one in the narrower card area (Grid, Masonry, Front Page).
-- Chips stack and wrap in the sidebar; search and sort go full width.
-- Sticky sidebar with a settable top offset (T4's sticky header).
-- Check every layout in the narrower area, especially Tide Line's spine and Contact Sheet.
-- Check the Extras that measure the card area (wrasse lane, trotting Tancho) and Cast a line's scroll.
-- README recipe for finer tuning through a CSS variable such as `--twk-side` (sidebar width).
-
-### Image-only cards
-
-Decided: a card setting that works with every layout, not a seventh layout. The card is just the picture and links to the article.
-
-- **Title on hover/focus:** the title shows as a caption over the picture when the card is hovered or tabbed to (and stays visible on touch screens, which have no hover). It is always there for screen readers as the link's name.
-- **Badges and marks: a setting.** Featured, Fresh catch and the Beachcombed mark can be shown on the picture or hidden, so the card can be purely the image.
-- Articles with no picture: the generated wave art with the title over it, so the card isn't a blank tile.
-- Filters, search and sort still work: tags and intro stay in the data attributes, they just aren't shown.
-- Best fits: Grid, Masonry, Contact Sheet. Check how Tide Line and Magazine List look with it.
-- Picture shape follows the layout's crop (square to 2:1); the cheat sheet's picture advice already covers this.
-
-### Read it here (pop-up)
-
-Setting **When a card is clicked: Go to the article / Open in a pop-up** (default: go to the article).
-
-- Native `<dialog>`: the article title as its heading, a close button, Esc and backdrop click close it, focus goes back to the card.
-- An **Open this article on its own page** link in the pop-up.
-- Fetch the article when clicked, not up front (putting every full text in the page, hidden, is too heavy at 100 articles). Server side: run the text through `content.prepare` like a normal article view, with the same access checks as the board's query (state, dates, access, every parent category). Probably a `com_ajax` module call; to confirm when building.
-- Pairs with image-only cards (picture wall → read in place).
-- Works with Beachcombed marks (opening in the pop-up counts as read).
-
-### Link to one article
-
-Add the open article to the address-bar state, e.g. `#twk-12:open=345`, so a shared link opens the board with that article in the pop-up (or scrolls to and highlights its card when the pop-up is off). Closing the pop-up removes it. Reacts to `hashchange` as well as page load.
-
-### Two more sorts
-
-- **Oldest first** (`publish_up` ascending).
-- **Article order**: the order editors set by dragging in Joomla's Articles list (`a.ordering`), so a board can be hand-ordered. Across several categories it sorts by category first; check that reads sensibly.
-- Both in the admin default and the visitor sort menu.
-
-### Errors to a log
-
-If the query or rendering throws, visitors get nothing broken: the module shows a plain one-line message (or nothing; decide when building) and the details go to `mod_tidewrack.errors.php` in Joomla's log folder through `Log::addLogger`. Super Users could see a short "see the log" note.
-
-### Table layout (to confirm)
-
-A Table layout: rows of title, date, category, tags (and optional thumbnail). Would be a seventh layout, after image-only cards were deliberately kept out of the layout list, so confirm before building. Notes if built: real `<table>` with a caption and column headers, the reshuffle animation on rows, collapses to stacked rows on phones, Cards/List toggle still works.
+- None parked right now.
 
 ## Known lessons
 

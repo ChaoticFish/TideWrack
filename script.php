@@ -5,7 +5,8 @@
  * @copyright   (C) 2026 Chaotic Fish Design Studio
  * @license     GNU General Public License version 2 or later
  *
- * Install checks: refuses PHP below 8.2 and Joomla below 5, with a plain message.
+ * Install checks: refuses PHP below 8.2 and Joomla below 5, with a plain message, and refuses a copy of
+ * the zip with missing or changed files (build.py writes the expected SHA-256 list below).
  * Kept to old PHP syntax (no typed properties, promotion, match, etc.) so this file
  * itself still parses on the old servers it is meant to turn away.
  */
@@ -30,6 +31,14 @@ return new class () implements ServiceProviderInterface {
 
                 /** @var string */
                 private $minimumJoomla = '5.0.0';
+
+                /**
+                 * Every installed file (path => SHA-256 with line endings as \n), written by build.py.
+                 * Empty in the source, which skips the check.
+                 *
+                 * @var array
+                 */
+                private $expected = array(/*EXPECTED*/);
 
                 public function install(InstallerAdapter $adapter): bool
                 {
@@ -65,6 +74,10 @@ return new class () implements ServiceProviderInterface {
                         return false;
                     }
 
+                    if (!$this->complete($adapter)) {
+                        return false;
+                    }
+
                     if (version_compare(JVERSION, $this->minimumJoomla, '<')) {
                         $this->refuse(
                             'MOD_TIDEWRACK_INSTALL_JOOMLA',
@@ -82,6 +95,50 @@ return new class () implements ServiceProviderInterface {
                 public function postflight(string $type, InstallerAdapter $adapter): bool
                 {
                     return true;
+                }
+
+                /**
+                 * Compare the unpacked zip with the list made when it was built. A transfer that drops or
+                 * rewrites files (some unpack and repack archives) is caught here, before anything is copied.
+                 */
+                private function complete(InstallerAdapter $adapter)
+                {
+                    if (!$this->expected) {
+                        return true;
+                    }
+
+                    try {
+                        $source = rtrim($adapter->getParent()->getPath('source'), '/\\');
+                    } catch (\Throwable $e) {
+                        return true;
+                    }
+
+                    $bad = array();
+
+                    foreach ($this->expected as $path => $hash) {
+                        $file = $source . '/' . $path;
+                        $data = is_file($file) ? file_get_contents($file) : false;
+
+                        if ($data === false) {
+                            $bad[] = $path . ' (missing)';
+                        } elseif (hash('sha256', str_replace("\r\n", "\n", $data)) !== $hash) {
+                            $bad[] = $path . ' (changed)';
+                        }
+                    }
+
+                    if (!$bad) {
+                        return true;
+                    }
+
+                    $more = count($bad) > 12 ? ' … +' . (count($bad) - 12) : '';
+                    $text = Text::_('MOD_TIDEWRACK_INSTALL_INCOMPLETE');
+                    $text = $text === 'MOD_TIDEWRACK_INSTALL_INCOMPLETE'
+                        ? 'This copy of the Tidewrack zip is incomplete, so nothing was installed. Download the zip again and install it as it is, without unpacking it first. Files: %s'
+                        : $text;
+
+                    Factory::getApplication()->enqueueMessage(sprintf($text, htmlspecialchars(implode(', ', array_slice($bad, 0, 12)) . $more, ENT_QUOTES, 'UTF-8')), 'error');
+
+                    return false;
                 }
 
                 /** The module's own language file is not loaded yet during install; load it from the package. */

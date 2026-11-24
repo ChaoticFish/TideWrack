@@ -28,13 +28,30 @@ final class Dispatcher extends AbstractModuleDispatcher implements HelperFactory
         /** @var \ChaoticFishDesign\Module\Tidewrack\Site\Helper\TidewrackHelper $helper */
         $helper = $this->getHelperFactory()->getHelper('TidewrackHelper');
 
-        $data['items'] = $helper->getItems($params, $app);
+        $data['failed'] = false;
+
+        try {
+            $data['items'] = $helper->getItems($params, $app);
+        } catch (\Throwable $e) {
+            // Visitors see nothing broken; the details go to the log for the site owner.
+            $helper::logError($e, 'module ' . (int) $data['module']->id);
+            $data['items']  = [];
+            $data['failed'] = true;
+        }
+
         $data['tags']  = $helper->getFilterTags($data['items'], $params);
+        $data['cats']  = (int) $params->get('show_cats', 0) ? $helper->getFilterCats($data['items']) : [];
+        $data['years'] = (int) $params->get('show_years', 0) ? $helper->getFilterYears($data['items']) : [];
+
+        // The pop-up fetches articles through com_ajax; Itemid keeps the page's language and menu context.
+        $active        = $app->getMenu() ? $app->getMenu()->getActive() : null;
+        $data['ajax']  = Uri::base(true) . '/index.php?option=com_ajax&module=tidewrack&method=article&format=json'
+            . '&mid=' . (int) $data['module']->id . ($active ? '&Itemid=' . (int) $active->id : '');
 
         // Classic asset loading: WebAssetManager registration conflicted with T4 on the CFD sites.
         $doc   = $app->getDocument();
         $media = Uri::root(true) . '/media/mod_tidewrack/';
-        $ver   = '1.1.1';
+        $ver   = '1.2.0';
         $doc->addStyleSheet($media . 'css/tidewrack.min.css', ['version' => $ver]);
         $doc->addScript($media . 'js/tidewrack.min.js', ['version' => $ver], ['defer' => true]);
 

@@ -1,5 +1,5 @@
 /*!
- * Tidewrack 1.1.1 — Chaotic Fish Design Studio
+ * Tidewrack 1.2.0 — Chaotic Fish Design Studio
  * Client-side tag filtering, search, sort and reveal for mod_tidewrack.
  * No dependencies. Every module instance on a page runs independently.
  */
@@ -12,8 +12,10 @@
 		pub_asc: function (a, b) { return a.pub - b.pub || a.i - b.i; },
 		mod_desc: function (a, b) { return b.mod - a.mod || a.i - b.i; },
 		mod_asc: function (a, b) { return a.mod - b.mod || a.i - b.i; },
-		title_asc: function (a, b) { return a.title.localeCompare(b.title) || a.i - b.i; }
+		title_asc: function (a, b) { return a.title.localeCompare(b.title) || a.i - b.i; },
+		order_asc: function (a, b) { return a.ord - b.ord || a.i - b.i; }
 	};
+	var FACETS = ['tag', 'cat', 'year'];
 	var instances = [];
 	var READ_KEY = 'twk-beachcombed';
 
@@ -57,13 +59,19 @@
 		this.useUrl = root.getAttribute('data-twk-url') === '1';
 		this.media = root.getAttribute('data-twk-media') || '';
 		this.extras = root.getAttribute('data-twk-extras') === '1';
-		this.tags = [];
+		this.sel = { tag: [], cat: [], year: [] };
+		this.tags = this.sel.tag;
 		this.q = '';
+		this.featFirst = root.getAttribute('data-twk-featfirst') === '1';
+		this.dateSort = root.getAttribute('data-twk-datesort') === 'mod' ? 'mod' : 'pub';
+		this.ajax = root.getAttribute('data-twk-popup') || '';
+		this.openId = '';
 		this.s = {
 			showing: root.getAttribute('data-twk-s-showing') || 'Showing %1$s of %2$s',
 			one: root.getAttribute('data-twk-s-showing-one') || 'Showing 1 of 1',
 			none: root.getAttribute('data-twk-s-none') || '',
-			caught: root.getAttribute('data-twk-s-caught') || '%s'
+			caught: root.getAttribute('data-twk-s-caught') || '%s',
+			gauge: root.getAttribute('data-twk-s-gauge') || '%1$s of %2$s'
 		};
 		this.readMarks = root.getAttribute('data-twk-readmarks') === '1';
 
@@ -72,6 +80,10 @@
 				el: el,
 				i: i,
 				tags: el.getAttribute('data-twk-tags').trim().split(/\s+/).filter(Boolean),
+				cat: el.getAttribute('data-twk-cat') || '',
+				year: el.getAttribute('data-twk-year') || '',
+				ord: +el.getAttribute('data-twk-ord') || 0,
+				feat: el.getAttribute('data-twk-feat') === '1',
 				pub: +el.getAttribute('data-twk-pub') || 0,
 				mod: +el.getAttribute('data-twk-mod') || 0,
 				title: el.getAttribute('data-twk-title') || '',
@@ -87,6 +99,8 @@
 		this.clear$ = root.querySelector('[data-twk-clear]');
 		this.cast$ = root.querySelector('[data-twk-cast]');
 		this.forget$ = root.querySelector('[data-twk-forget]');
+		this.gauge$ = root.querySelector('[data-twk-gauge]');
+		this.gaugeText$ = root.querySelector('[data-twk-gauge-text]');
 
 		var bar = root.querySelector('.twk-bar');
 		if (bar) { bar.hidden = false; }
@@ -97,7 +111,7 @@
 		}
 
 		this.chips = Array.prototype.map.call(root.querySelectorAll('[data-twk-chip]'), function (el) {
-			return { el: el, id: el.getAttribute('data-twk-chip'), count: el.querySelector('[data-twk-count]') };
+			return { el: el, id: el.getAttribute('data-twk-chip'), facet: el.getAttribute('data-twk-facet') || 'tag', count: el.querySelector('[data-twk-count]') };
 		});
 
 		this.readUrl();
@@ -106,6 +120,7 @@
 		this.apply(false);
 		this.watchMasonry();
 		this.markRead();
+		if (this.openId) { this.openFromUrl(); }
 	}
 
 	Tidewrack.prototype.bind = function () {
@@ -115,15 +130,21 @@
 
 		root.addEventListener('click', function (ev) {
 			var link = ev.target.closest('.twk-link');
+			if (link && self.ajax && ev.button === 0 && !(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey)) {
+				// Read it here: the link still works without the script, or with a modifier key.
+				ev.preventDefault();
+				self.openPop(self.cardOf(link.closest('[data-twk-card]')));
+				return;
+			}
 			if (link && self.readMarks) { self.remember(link); }
 
-			var t = ev.target.closest('[data-twk-chip],[data-twk-tagbtn],[data-twk-modebtn],[data-twk-view],[data-twk-clear],[data-twk-more],[data-twk-cast],[data-twk-forget],[data-twk-staff]');
+			var t = ev.target.closest('[data-twk-chip],[data-twk-tagbtn],[data-twk-modebtn],[data-twk-view],[data-twk-clear],[data-twk-more],[data-twk-cast],[data-twk-forget],[data-twk-staff],[data-twk-thsort]');
 			if (!t || !root.contains(t)) { return; }
 
 			if (t.hasAttribute('data-twk-chip') || t.hasAttribute('data-twk-tagbtn')) {
 				ev.preventDefault();
 				if (t.getAttribute('aria-disabled') === 'true') { return; }
-				self.toggleTag(t.getAttribute('data-twk-chip') || t.getAttribute('data-twk-tagbtn'));
+				self.toggle(t.getAttribute('data-twk-facet') || 'tag', t.getAttribute('data-twk-chip') || t.getAttribute('data-twk-tagbtn'));
 			} else if (t.hasAttribute('data-twk-modebtn')) {
 				self.mode = t.getAttribute('data-twk-modebtn');
 				self.resetShown();
@@ -132,7 +153,7 @@
 				self.setView(t.getAttribute('data-twk-view'));
 			} else if (t.hasAttribute('data-twk-clear')) {
 				if (t.getAttribute('aria-disabled') === 'true' || self.longPressed) { self.longPressed = false; return; }
-				self.tags = [];
+				FACETS.forEach(function (f) { self.sel[f].length = 0; });
 				self.q = '';
 				if (self.q$) { self.q$.value = ''; }
 				self.resetShown();
@@ -143,6 +164,8 @@
 				Extras.summon('random', self);
 			} else if (t.hasAttribute('data-twk-cast')) {
 				self.castLine();
+			} else if (t.hasAttribute('data-twk-thsort')) {
+				self.headerSort(t.getAttribute('data-twk-thsort'));
 			} else if (t.hasAttribute('data-twk-forget')) {
 				Sand.clear();
 				instances.forEach(function (inst) { inst.markRead(); });
@@ -186,11 +209,40 @@
 				self.apply(true);
 			});
 		}
+
+		// A shared link pasted into the same page (or the back button) changes only the hash.
+		if (this.useUrl) {
+			window.addEventListener('hashchange', function () {
+				if (window.location.hash.indexOf('#' + root.id + ':') !== 0) { return; }
+				self.readUrl(true);
+				self.resetShown();
+				self.apply(true);
+				if (self.openId) { self.openFromUrl(); }
+			});
+		}
 	};
 
-	Tidewrack.prototype.toggleTag = function (id) {
-		var at = this.tags.indexOf(id);
-		if (at === -1) { this.tags.push(id); } else { this.tags.splice(at, 1); }
+	/** Table headers: Article sorts A–Z; Date flips between newest and oldest. */
+	Tidewrack.prototype.headerSort = function (which) {
+		if (which === 'title') {
+			this.sort = 'title_asc';
+		} else {
+			this.sort = this.sort === this.dateSort + '_desc' ? this.dateSort + '_asc' : this.dateSort + '_desc';
+		}
+		this.apply(true);
+	};
+
+	Tidewrack.prototype.cardOf = function (el) {
+		for (var i = 0; i < this.cards.length; i++) {
+			if (this.cards[i].el === el) { return this.cards[i]; }
+		}
+		return null;
+	};
+
+	Tidewrack.prototype.toggle = function (facet, id) {
+		var list = this.sel[facet] || this.sel.tag;
+		var at = list.indexOf(id);
+		if (at === -1) { list.push(id); } else { list.splice(at, 1); }
 		this.resetShown();
 		this.apply(true);
 	};
@@ -222,8 +274,22 @@
 		return true;
 	};
 
-	Tidewrack.prototype.matches = function (c) {
-		return this.matchTags(c, this.tags) && this.matchText(c);
+	/** Categories and years: an article has one of each, so picked values widen each other (Any). */
+	Tidewrack.prototype.matchOne = function (c, facet, list) {
+		return !list.length || list.indexOf(c[facet]) !== -1;
+	};
+
+	/** Everything narrows everything else; skip one facet to count what its chips would show. */
+	Tidewrack.prototype.matches = function (c, skip) {
+		return (skip === 'tag' || this.matchTags(c, this.sel.tag))
+			&& (skip === 'cat' || this.matchOne(c, 'cat', this.sel.cat))
+			&& (skip === 'year' || this.matchOne(c, 'year', this.sel.year))
+			&& this.matchText(c);
+	};
+
+	Tidewrack.prototype.anyPicked = function () {
+		var sel = this.sel;
+		return FACETS.some(function (f) { return sel[f].length > 0; });
 	};
 
 	/**
@@ -232,14 +298,19 @@
 	 */
 	Tidewrack.prototype.updateChips = function () {
 		var self = this;
-		var pool = this.cards.filter(function (c) { return self.matchText(c); });
-		if (this.mode === 'all' && this.tags.length) {
-			pool = pool.filter(function (c) { return self.matchTags(c, self.tags); });
+		var pools = {};
+		FACETS.forEach(function (f) {
+			pools[f] = self.cards.filter(function (c) { return self.matches(c, f); });
+		});
+		if (this.mode === 'all' && this.sel.tag.length) {
+			pools.tag = pools.tag.filter(function (c) { return self.matchTags(c, self.sel.tag); });
 		}
 		this.chips.forEach(function (chip) {
 			var n = 0;
-			pool.forEach(function (c) { if (c.tags.indexOf(chip.id) !== -1) { n++; } });
-			var on = self.tags.indexOf(chip.id) !== -1;
+			pools[chip.facet].forEach(function (c) {
+				if (chip.facet === 'tag' ? c.tags.indexOf(chip.id) !== -1 : c[chip.facet] === chip.id) { n++; }
+			});
+			var on = self.sel[chip.facet].indexOf(chip.id) !== -1;
 			var dim = !on && n === 0;
 			if (chip.count) { chip.count.textContent = String(n); }
 			chip.el.classList.toggle('twk-chip--empty', dim);
@@ -281,7 +352,7 @@
 	/* ---------- Beachcombed marks ---------- */
 
 	Tidewrack.prototype.remember = function (link) {
-		var card = link.closest('[data-twk-card]');
+		var card = link.hasAttribute('data-twk-card') ? link : link.closest('[data-twk-card]');
 		if (!card) { return; }
 		Sand.add(card.getAttribute('data-twk-card'));
 		this.markRead();
@@ -293,9 +364,8 @@
 		var any = false;
 		this.cards.forEach(function (c) {
 			var on = read.indexOf(c.el.getAttribute('data-twk-card')) !== -1;
-			var mark = c.el.querySelector('[data-twk-readmark]');
 			c.el.classList.toggle('twk-card--read', on);
-			if (mark) { mark.hidden = !on; }
+			Array.prototype.forEach.call(c.el.querySelectorAll('[data-twk-readmark]'), function (mark) { mark.hidden = !on; });
 			any = any || on;
 		});
 		if (this.forget$) { this.forget$.hidden = !any; }
@@ -310,8 +380,14 @@
 		if (!pool.length) { return; }
 
 		var c = pool[Math.floor(Math.random() * pool.length)];
-		var at = this.hits.indexOf(c);
 		this.lastCaught = c;
+		this.bringIntoView(c);
+	};
+
+	/** Scroll a card into view (revealing Show More steps if needed), focus it and give it a wiggle. */
+	Tidewrack.prototype.bringIntoView = function (c) {
+		var at = this.hits.indexOf(c);
+		if (at === -1) { return; }
 
 		// Reveal enough Show More steps to include the catch.
 		if (this.shown > 0 && at >= this.shown) {
@@ -361,7 +437,8 @@
 			});
 		}
 
-		var hits = this.cards.filter(function (c) { return self.matches(c); }).sort(SORTS[this.sort] || SORTS.pub_desc);
+		var by = SORTS[this.sort] || SORTS.pub_desc;
+		var hits = this.cards.filter(function (c) { return self.matches(c); }).sort(this.featFirst ? function (a, b) { return (b.feat - a.feat) || by(a, b); } : by);
 		var misses = this.cards.filter(function (c) { return hits.indexOf(c) === -1; });
 		var limit = this.shown > 0 ? this.shown : hits.length;
 		this.hits = hits;
@@ -385,7 +462,15 @@
 		// Chip and in-card tag button state.
 		Array.prototype.forEach.call(this.root.querySelectorAll('[data-twk-chip],[data-twk-tagbtn]'), function (b) {
 			var id = b.getAttribute('data-twk-chip') || b.getAttribute('data-twk-tagbtn');
-			b.setAttribute('aria-pressed', self.tags.indexOf(id) !== -1 ? 'true' : 'false');
+			var list = self.sel[b.getAttribute('data-twk-facet') || 'tag'] || self.sel.tag;
+			b.setAttribute('aria-pressed', list.indexOf(id) !== -1 ? 'true' : 'false');
+		});
+		Array.prototype.forEach.call(this.root.querySelectorAll('[data-twk-th]'), function (th) {
+			var which = th.getAttribute('data-twk-th');
+			var dir = which === 'title'
+				? (self.sort === 'title_asc' ? 'ascending' : '')
+				: (self.sort === self.dateSort + '_desc' ? 'descending' : self.sort === self.dateSort + '_asc' ? 'ascending' : '');
+			if (dir) { th.setAttribute('aria-sort', dir); } else { th.removeAttribute('aria-sort'); }
 		});
 		Array.prototype.forEach.call(this.root.querySelectorAll('[data-twk-modebtn]'), function (b) {
 			var on = b.getAttribute('data-twk-modebtn') === self.mode;
@@ -400,7 +485,11 @@
 		this.updateChips();
 		this.layoutMasonry();
 		if (this.sort$) { this.sort$.value = this.sort; }
-		if (this.clear$) { this.clear$.setAttribute('aria-disabled', this.tags.length || this.q ? 'false' : 'true'); }
+		if (this.clear$) { this.clear$.setAttribute('aria-disabled', this.anyPicked() || this.q ? 'false' : 'true'); }
+		if (this.gauge$) {
+			this.gauge$.style.width = (this.cards.length ? hits.length / this.cards.length * 100 : 0) + '%';
+			if (this.gaugeText$) { this.gaugeText$.textContent = fmt(this.s.gauge, hits.length, this.cards.length); }
+		}
 
 		if (this.empty$) {
 			var wasHidden = this.empty$.hidden;
@@ -437,16 +526,24 @@
 	};
 
 	// URL state lives in the hash as  #twk-12:tags=3,7;mode=all;q=goat;sort=mod_desc;view=list
-	Tidewrack.prototype.readUrl = function () {
+	Tidewrack.prototype.readUrl = function (again) {
 		if (!this.useUrl) { return; }
 		var prefix = '#' + this.root.id + ':';
 		var hash = window.location.hash;
 		if (hash.indexOf(prefix) !== 0) { return; }
 		var self = this;
+		var ids = function (v) { return v.split(',').filter(function (t) { return /^\d+$/.test(t); }); };
+		if (again) {
+			FACETS.forEach(function (f) { self.sel[f].length = 0; });
+			this.openId = '';
+		}
 		hash.slice(prefix.length).split(';').forEach(function (pair) {
 			var kv = pair.split('=');
 			var v = decodeURIComponent(kv[1] || '');
-			if (kv[0] === 'tags') { self.tags = v.split(',').filter(function (t) { return /^\d+$/.test(t); }); }
+			if (kv[0] === 'tags') { Array.prototype.push.apply(self.sel.tag, ids(v)); }
+			if (kv[0] === 'cats') { Array.prototype.push.apply(self.sel.cat, ids(v)); }
+			if (kv[0] === 'years') { Array.prototype.push.apply(self.sel.year, ids(v)); }
+			if (kv[0] === 'open' && /^\d+$/.test(v)) { self.openId = v; }
 			if (kv[0] === 'mode') { self.mode = v === 'all' ? 'all' : 'any'; }
 			if (kv[0] === 'q') { self.q = v.toLowerCase(); if (self.q$) { self.q$.value = v; } }
 			if (kv[0] === 'sort' && SORTS[v]) { self.sort = v; }
@@ -457,17 +554,20 @@
 			}
 		});
 		var root = this.root;
-		window.requestAnimationFrame(function () { root.scrollIntoView({ block: 'start' }); });
+		if (!again && !this.openId) { window.requestAnimationFrame(function () { root.scrollIntoView({ block: 'start' }); }); }
 	};
 
 	Tidewrack.prototype.writeUrl = function () {
 		if (!this.useUrl || !window.history.replaceState) { return; }
 		var parts = [];
-		if (this.tags.length) { parts.push('tags=' + this.tags.join(',')); }
-		if (this.tags.length > 1 && this.mode !== 'any') { parts.push('mode=' + this.mode); }
+		if (this.sel.tag.length) { parts.push('tags=' + this.sel.tag.join(',')); }
+		if (this.sel.tag.length > 1 && this.mode !== 'any') { parts.push('mode=' + this.mode); }
+		if (this.sel.cat.length) { parts.push('cats=' + this.sel.cat.join(',')); }
+		if (this.sel.year.length) { parts.push('years=' + this.sel.year.join(',')); }
 		if (this.q) { parts.push('q=' + encodeURIComponent(this.q)); }
 		if (this.sort !== this.root.getAttribute('data-twk-sort')) { parts.push('sort=' + this.sort); }
 		if (this.view !== this.style) { parts.push('view=' + this.view); }
+		if (this.openId) { parts.push('open=' + this.openId); }
 
 		var prefix = '#' + this.root.id + ':';
 		var hash = window.location.hash;
@@ -479,6 +579,174 @@
 		} else if (ours) {
 			window.history.replaceState(window.history.state, '', base);
 		}
+	};
+
+	/* ---------- Read it here: the article in a pop-up, with Previous and Next ---------- */
+
+	/** A shared link with open=ID: the pop-up when it's on, otherwise the card itself, wiggling. */
+	Tidewrack.prototype.openFromUrl = function () {
+		var id = this.openId;
+		var c = this.cards.filter(function (x) { return x.el.getAttribute('data-twk-card') === id; })[0];
+		if (!c) { this.openId = ''; this.writeUrl(); return; }
+		if (this.ajax) { this.openPop(c); return; }
+		this.openId = '';
+		this.writeUrl();
+		var self = this;
+		window.requestAnimationFrame(function () { self.bringIntoView(c); });
+	};
+
+	Tidewrack.prototype.buildPop = function () {
+		var self = this;
+		var uid = this.root.id + '-pop';
+		var s = function (k, def) { return self.root.getAttribute('data-twk-s-' + k) || def; };
+		var d = document.createElement('dialog');
+		d.className = 'twk-dialog';
+		d.setAttribute('aria-labelledby', uid + '-title');
+		d.innerHTML =
+			'<div class="twk-dialog-inner">' +
+				'<div class="twk-dialog-head">' +
+					'<p class="twk-dialog-meta"></p>' +
+					'<h2 class="twk-dialog-title" id="' + uid + '-title"></h2>' +
+					'<button type="button" class="twk-dialog-x" data-pop="close"><span aria-hidden="true">&times;</span><span class="visually-hidden"></span></button>' +
+				'</div>' +
+				'<div class="twk-dialog-body" tabindex="-1"></div>' +
+				'<div class="twk-dialog-foot">' +
+					'<div class="twk-dialog-nav">' +
+						'<button type="button" class="btn btn-sm btn-outline-secondary" data-pop="prev"><span aria-hidden="true">&lsaquo;</span><span class="visually-hidden"></span></button>' +
+						'<span class="twk-dialog-pos"></span>' +
+						'<button type="button" class="btn btn-sm btn-outline-secondary" data-pop="next"><span aria-hidden="true">&rsaquo;</span><span class="visually-hidden"></span></button>' +
+					'</div>' +
+					'<a class="twk-dialog-page"></a>' +
+				'</div>' +
+			'</div>';
+		d.querySelector('[data-pop="close"] .visually-hidden').textContent = s('close', 'Close');
+		d.querySelector('[data-pop="prev"] .visually-hidden').textContent = s('prev', 'Previous article');
+		d.querySelector('[data-pop="next"] .visually-hidden').textContent = s('next', 'Next article');
+		d.querySelector('.twk-dialog-page').textContent = s('page', 'Open this article on its own page');
+		// Inside the module, so the pop-up picks up its colours and the page's light or dark theme.
+		this.root.appendChild(d);
+
+		d.addEventListener('click', function (ev) {
+			var b = ev.target.closest('[data-pop]');
+			if (ev.target === d || (b && b.getAttribute('data-pop') === 'close')) { d.close(); return; }
+			if (b) { self.stepPop(b.getAttribute('data-pop') === 'next' ? 1 : -1); }
+		});
+		d.addEventListener('keydown', function (ev) {
+			var el = ev.target;
+			if (ev.altKey || ev.ctrlKey || ev.metaKey || (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)))) { return; }
+			if (ev.key === 'ArrowRight') { ev.preventDefault(); self.stepPop(1); }
+			if (ev.key === 'ArrowLeft') { ev.preventDefault(); self.stepPop(-1); }
+		});
+		d.addEventListener('close', function () {
+			var c = self.popCard;
+			self.popCard = null;
+			self.openId = '';
+			self.writeUrl();
+			// Back to the card the reader ended on, not necessarily the one they opened.
+			if (c && !c.el.hidden) {
+				var link = c.el.querySelector('.twk-link');
+				if (link) { link.focus({ preventScroll: true }); }
+				c.el.scrollIntoView({ block: 'nearest', behavior: reduced.matches ? 'auto' : 'smooth' });
+			}
+		});
+
+		this.pop = {
+			d: d,
+			meta: d.querySelector('.twk-dialog-meta'),
+			title: d.querySelector('.twk-dialog-title'),
+			body: d.querySelector('.twk-dialog-body'),
+			pos: d.querySelector('.twk-dialog-pos'),
+			prev: d.querySelector('[data-pop="prev"]'),
+			next: d.querySelector('[data-pop="next"]'),
+			page: d.querySelector('.twk-dialog-page'),
+			cache: {}
+		};
+	};
+
+	Tidewrack.prototype.openPop = function (c) {
+		if (!c) { return; }
+		if (!this.pop) { this.buildPop(); }
+		var p = this.pop;
+		var self = this;
+		var id = c.el.getAttribute('data-twk-card');
+		var link = c.el.querySelector('.twk-link');
+		var href = link ? link.getAttribute('href') : '';
+		var meta = [];
+
+		if (typeof p.d.showModal !== 'function') { window.location.href = href; return; }
+
+		this.popCard = c;
+		this.openId = id;
+		p.title.textContent = link ? link.textContent.trim() : '';
+		Array.prototype.forEach.call(c.el.querySelectorAll('.twk-date,.twk-read,.twk-author,.twk-cat,.twk-cell-cat,.twk-cell-author,.twk-cell-read'), function (el) {
+			var t = el.textContent.trim();
+			if (t && meta.indexOf(t) === -1) { meta.push(t); }
+		});
+		p.meta.textContent = meta.join(' \u00b7 ');
+		p.meta.hidden = !meta.length;
+		p.page.href = href;
+
+		var at = this.hits.indexOf(c);
+		p.prev.disabled = at <= 0;
+		p.next.disabled = at === -1 || at >= this.hits.length - 1;
+		p.pos.textContent = at === -1 ? '' : fmt(this.root.getAttribute('data-twk-s-pos') || '%1$s of %2$s', at + 1, this.hits.length);
+
+		if (!p.d.open) { p.d.showModal(); }
+		p.body.scrollTop = 0;
+		if (this.readMarks) { Sand.add(id); this.markRead(); }
+		this.writeUrl();
+
+		var show = function (html) {
+			if (self.popCard !== c) { return; }
+			p.body.removeAttribute('aria-busy');
+			p.body.innerHTML = html;
+			p.body.scrollTop = 0;
+		};
+
+		if (p.cache[id]) { show(p.cache[id]); return; }
+		p.body.setAttribute('aria-busy', 'true');
+		p.body.innerHTML = '<p class="twk-dialog-wait"><span class="twk-dialog-bob" aria-hidden="true"></span></p>';
+		p.body.querySelector('.twk-dialog-wait').appendChild(document.createTextNode(this.root.getAttribute('data-twk-s-loading') || 'Loading…'));
+
+		var failed = function () {
+			if (self.popCard !== c) { return; }
+			var msg = document.createElement('p');
+			var a = document.createElement('a');
+			msg.className = 'twk-dialog-fail';
+			a.href = href;
+			a.textContent = self.root.getAttribute('data-twk-s-failed') || 'Open it on its own page.';
+			msg.appendChild(a);
+			p.body.removeAttribute('aria-busy');
+			p.body.innerHTML = '';
+			p.body.appendChild(msg);
+		};
+
+		if (!window.fetch) { failed(); return; }
+		window.fetch(this.ajax + '&id=' + encodeURIComponent(id), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+			.then(function (r) { return r.ok ? r.json() : null; })
+			.then(function (json) {
+				var data = json && json.success !== false ? json.data : null;
+				// com_ajax wraps a module helper's answer; some setups add one more array level.
+				if (Array.isArray(data)) { data = data[0]; }
+				if (!data || typeof data.html !== 'string') { failed(); return; }
+				p.cache[id] = data.html;
+				show(data.html);
+			})
+			.catch(failed);
+	};
+
+	Tidewrack.prototype.stepPop = function (dir) {
+		var at = this.hits.indexOf(this.popCard);
+		var c = this.hits[at + dir];
+		if (at === -1 || !c) { return; }
+		// Keep the board in step, so closing the pop-up lands on a card that's on the page.
+		if (this.shown > 0 && at + dir >= this.shown) {
+			this.shown = this.initial + Math.ceil((at + dir + 1 - this.initial) / this.step) * this.step;
+			this.apply(false);
+		}
+		this.openPop(c);
+		// At either end the pressed button turns off; keep focus on a control that still works.
+		if ((dir > 0 ? this.pop.next : this.pop.prev).disabled) { (dir > 0 ? this.pop.prev : this.pop.next).focus(); }
 	};
 
 	/* ---------- Extras: the staff occasionally drops by ---------- */
@@ -614,7 +882,7 @@
 
 			var card = cards[Math.floor(Math.random() * cards.length)].el;
 			// He pops up from the bottom edge of the card's photo; with no photo, over the card's top edge.
-			var host = card.querySelector('.twk-media') || card;
+			var host = (inst.style !== 'table' && card.querySelector('.twk-media')) || card;
 			var box = document.createElement('span');
 			var cat = document.createElement('img');
 			var self = this;
@@ -651,11 +919,15 @@
 		/** Hawke walks in from the card's right edge, eats a tag chip, and wanders off. The chip grows back. */
 		hawke: function (inst) {
 			var self = this;
-			var cards = this.onScreenCards(inst).filter(function (c) { return c.el.querySelector('.twk-tag'); });
+			var visibleTags = function (c) {
+				return Array.prototype.filter.call(c.el.querySelectorAll('.twk-tag'), function (t) { return t.offsetParent !== null; });
+			};
+			var cards = this.onScreenCards(inst).filter(function (c) { return visibleTags(c).length; });
 			if (!cards.length) { return this.done(); }
 
-			var card = cards[Math.floor(Math.random() * cards.length)].el;
-			var tags = card.querySelectorAll('.twk-tag');
+			var pick = cards[Math.floor(Math.random() * cards.length)];
+			var card = pick.el;
+			var tags = visibleTags(pick);
 			var tag = tags[Math.floor(Math.random() * tags.length)];
 			var cb = card.getBoundingClientRect();
 			var tb = tag.getBoundingClientRect();
@@ -746,16 +1018,20 @@
 				from = 'translateY(' + top + 'px)';
 				to = 'translateY(' + Math.max(top + 120, bottom) + 'px)';
 			} else {
+				// Along the top of the cards only, so he never trots across a sidebar.
 				var row = cards[0].el.getBoundingClientRect();
+				var lb = inst.list.getBoundingClientRect();
+				var x0 = lb.left - rb.left;
 				horse.style.left = '0px';
 				horse.style.top = (row.top - rb.top - hh + 3) + 'px';
-				from = 'translateX(' + (-hw) + 'px)';
-				to = 'translateX(' + root.clientWidth + 'px)';
+				from = 'translateX(' + (x0 - hw) + 'px)';
+				to = 'translateX(' + (x0 + lb.width) + 'px)';
 			}
 			root.appendChild(horse);
 
 			if (reduced.matches) {
-				horse.style.transform = spine ? from : 'translateX(' + (root.clientWidth / 2 - hw / 2) + 'px)';
+				var mid = inst.list.getBoundingClientRect();
+				horse.style.transform = spine ? from : 'translateX(' + (mid.left - rb.left + mid.width / 2 - hw / 2) + 'px)';
 				horse.animate([{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2600 }).onfinish = function () {
 					horse.remove(); self.done();
 				};
@@ -806,29 +1082,37 @@
 				else if (/tancho$/.test(self.buffer)) { self.buffer = ''; self.summon('tancho'); }
 			});
 
-			// Touch: long-press the Clear button.
-			instances.forEach(function (inst) {
-				var btn = inst.clear$;
-				var timer;
-				if (!inst.extras || !btn) { return; }
-				btn.addEventListener('pointerdown', function () {
-					timer = setTimeout(function () { inst.longPressed = true; self.summon('random', inst); }, 650);
-				});
-				['pointerup', 'pointerleave', 'pointercancel'].forEach(function (t) {
-					btn.addEventListener(t, function () { clearTimeout(timer); });
-				});
-				btn.addEventListener('contextmenu', function (ev) { if (inst.longPressed) { ev.preventDefault(); } });
+		},
+
+		/** Touch: long-press the Clear button. Bound once per module instance. */
+		longPress: function (inst) {
+			var self = this;
+			var btn = inst.clear$;
+			var timer;
+			if (inst.pressBound || !inst.extras || !btn) { return; }
+			inst.pressBound = true;
+			btn.addEventListener('pointerdown', function () {
+				timer = setTimeout(function () { inst.longPressed = true; self.summon('random', inst); }, 650);
 			});
+			['pointerup', 'pointerleave', 'pointercancel'].forEach(function (t) {
+				btn.addEventListener(t, function () { clearTimeout(timer); });
+			});
+			btn.addEventListener('contextmenu', function (ev) { if (inst.longPressed) { ev.preventDefault(); } });
 		}
 	};
 
+	window.TidewrackBoot = boot;
+
 	function boot() {
+		// Instances whose module was taken off the page (a demo swapping layouts, a page builder) are dropped.
+		instances = instances.filter(function (inst) { return inst.root.isConnected; });
 		Array.prototype.forEach.call(document.querySelectorAll('[data-twk]'), function (root) {
 			if (root.twk || !root.querySelector('[data-twk-items]')) { return; }
 			root.twk = new Tidewrack(root);
 			instances.push(root.twk);
 		});
-		if (instances.some(function (i) { return i.extras; })) { Extras.init(); }
+		if (!Extras.ready && instances.some(function (i) { return i.extras; })) { Extras.ready = true; Extras.init(); }
+		instances.forEach(function (inst) { Extras.longPress(inst); });
 	}
 
 	if (document.readyState === 'loading') {

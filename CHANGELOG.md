@@ -2,6 +2,24 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.2.0 — 2026-11-24
+
+### Added
+- **Read it here:** *When a Card Is Clicked* can open the article in a pop-up on the page instead of going to it. The article is fetched when clicked (through `com_ajax`), run through Joomla's content plugins, and checked against the same rules as the cards (state, dates, access, every parent category, this module's categories). Previous and Next step through the articles that match the current filters, also with the arrow keys; *Open this article on its own page* is always there. Ctrl/Cmd-click and middle-click still open the page, and without JavaScript the cards are plain links.
+- **Links to one article:** the address can name an open article (`#twk-12:open=345`). A shared link opens it in the pop-up, or brings its card into view with a wiggle when the pop-up is off.
+- **Table layout:** rows of title, date, category, author, reading time and tags (each column follows its Display setting), with a small thumbnail. The Article and Date headers sort. On phones each row becomes a labelled block.
+- **Picture-only cards** (*Card Content*): just the picture, with the title shown over it on hover or keyboard focus, and always on touch screens. Works with every layout except Table. *Badges on Pictures* keeps or hides Featured, Fresh catch and Beachcombed.
+- **Filters on the side** (*Filter Position*): Left or Right sidebar from 992px wide, sticky while scrolling (with a top offset for sticky headers), with a tide gauge showing how many articles match. Cards drop a column to make room. Narrower screens put the filters back on top.
+- **Category filters** and **Year filters**: extra chip rows with live counts. *Year Filter Uses* picks Published, Created or Modified dates. Picked values in one row widen each other; rows narrow each other.
+- **Article order** sort: the order set by dragging in Content: Articles, category by category. *Oldest published* was already there.
+- **Featured First:** featured articles stay at the top whatever the sort.
+- Errors loading the articles go to `mod_tidewrack.errors.php` in the site's log folder. Visitors see nothing broken; Super Users see a one-line note.
+- **Install check:** the installer compares every file with the list made when the zip was built and installs nothing if one is missing or changed, naming the files.
+
+### Changed
+- Tancho trots along the top of the cards only, so he never crosses a sidebar. Hawke only picks tag chips that are showing.
+- The demo switches every new setting live, including the pop-up and the Table layout.
+
 ## 1.1.1 — 2026-11-10
 
 ### Changed
