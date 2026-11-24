@@ -1,4 +1,4 @@
-/*! Tidewrack 1.0.0 — Chaotic Fish Design Studio */
+/*! Tidewrack 1.0.1 — Chaotic Fish Design Studio */
 .twk{--twk-accent:var(--bs-primary,#0d6efd);--twk-bg:var(--bs-body-bg,#fff);--twk-border:var(--bs-border-color,#dee2e6);--twk-card:var(--bs-body-bg,#fff);--twk-cols:3;--twk-fg:var(--bs-body-color,#212529);--twk-gap:1.5rem;--twk-muted:var(--bs-secondary-color,#6c757d);--twk-radius:var(--bs-border-radius-lg,.5rem);--twk-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.06);--twk-shadow-up:0 2px 4px rgba(0,0,0,.08),0 12px 28px rgba(0,0,0,.12);color:var(--twk-fg);overflow-x:clip;position:relative}
 .twk--cols-2{--twk-cols:2}
 .twk--cols-3{--twk-cols:3}
@@ -18,6 +18,7 @@
 .twk-chip[aria-pressed=true] .twk-count{background:rgba(255,255,255,.25)}
 .twk-chip--empty{cursor:default;opacity:.45}
 .twk-chip--empty:hover,.twk-chip--empty:active{border-color:var(--twk-border)}
+.twk .btn-outline-secondary.active,.twk .btn-outline-secondary[aria-pressed=true]{background-color:var(--bs-secondary,#6c757d);border-color:var(--bs-secondary,#6c757d);color:#fff}
 .twk-clear[aria-disabled=true]{cursor:default;opacity:.45}
 .twk-items{display:grid;gap:var(--twk-gap);grid-template-columns:repeat(var(--twk-cols),minmax(0,1fr))}
 .twk-card{background:var(--twk-card);border:1px solid var(--twk-border);border-radius:var(--twk-radius);box-shadow:var(--twk-shadow);display:flex;flex-direction:column;min-width:0;position:relative;transition:box-shadow .25s,transform .25s}
@@ -37,7 +38,7 @@
 .twk-link{color:inherit;text-decoration:none}
 .twk-link:hover,.twk-link:focus,.twk-link:active{color:var(--twk-accent);text-decoration:underline;text-underline-offset:.15em}
 .twk-link:focus-visible{outline:none}
-.twk-intro{font-size:.95rem;line-height:1.55;opacity:.88}
+.twk-intro{font-size:.95rem;line-height:1.55;opacity:.88;position:relative;z-index:1}
 .twk-tags{display:flex;flex-wrap:wrap;gap:.35rem;list-style:none;margin:auto 0 0;padding:.25rem 0 0}
 .twk-tag{background:rgba(127,127,127,.13);border:0;border-radius:999px;color:var(--twk-fg);display:inline-block;font-size:.75rem;line-height:1.3;padding:.2rem .6rem;position:relative;z-index:2}
 button.twk-tag{cursor:pointer;transition:background-color .2s,color .2s}

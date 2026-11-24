@@ -2,6 +2,12 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.0.1 — 2026-10-09
+
+### Fixed
+- Intro text sits above the card's click area, so point-and-read tools (A11y Toolbar's Read Aloud) read it instead of only the link, and the text can be selected. Clicking the intro no longer opens the article; the photo, title and meta still do.
+- Active Any/All and Cards/List buttons now always use white text, even when a template restyles Bootstrap's outline buttons.
+
 ## 1.0.0 — 2026-10-09
 
 Stable.

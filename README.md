@@ -2,7 +2,7 @@
 
 **Sorts what washes up.** A lightweight Joomla module that pulls articles from chosen categories into filterable, sortable cards with six layouts.
 
-By Chaotic Fish Design Studio · Version 1.0.0 · Joomla 5.4+ and Joomla 6 · GPL v2 or later
+By Chaotic Fish Design Studio · Version 1.0.1 · Joomla 5.4+ and Joomla 6 · GPL v2 or later
 
 ---
 
@@ -19,7 +19,7 @@ Weight: about 4.7 KB of JavaScript and 3.5 KB of CSS, gzipped (minified files lo
 
 ## Install
 
-1. Extensions → Install → upload `mod_tidewrack-1.0.0.zip`.
+1. Extensions → Install → upload `mod_tidewrack-1.0.1.zip`.
 2. Content → Site Modules → New → **Tidewrack**.
 3. Pick at least one category, assign a position and menu items, save.
 
@@ -165,7 +165,7 @@ Typing inside the search box or any form field never triggers them. Only one ext
 
 - Works without JavaScript: every card is rendered server-side and shown; the filter bar stays hidden until the script loads.
 - Chips, Any/All and Cards/List are real buttons with `aria-pressed`.
-- The whole card is clickable through the title link (`stretched-link`), so there is one link per card for screen readers. Tag buttons sit above it and stay separately clickable.
+- The card is clickable through the title link (`stretched-link`), so there is one link per card for screen readers. The intro text and tag buttons sit above that click area: the intro stays selectable and can be read by point-and-read tools such as A11y Toolbar's Read Aloud, and tags stay separately clickable.
 - A visually hidden live region announces "Showing 5 of 12 articles" after each change.
 - **Show more** moves keyboard focus to the first newly revealed card.
 - Focus rings are visible on every control; the card outlines itself when its link has focus.

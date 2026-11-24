@@ -1,5 +1,5 @@
 /*!
- * Tidewrack 1.0.0 — Chaotic Fish Design Studio
+ * Tidewrack 1.0.1 — Chaotic Fish Design Studio
  * Client-side tag filtering, search, sort and reveal for mod_tidewrack.
  * No dependencies. Every module instance on a page runs independently.
  */
