@@ -138,6 +138,8 @@ IMAGES = {
     'kokido-peek--240.webp': ('kokido', 'image/webp'),
     'hawke.svg': ('hawke', 'image/svg+xml'),
     'tancho.svg': ('tancho', 'image/svg+xml'),
+    'tancho-face.webp': ('tancho-face', 'image/webp'),
+    'ziggy-face.webp': ('ziggy-face', 'image/webp'),
 }
 
 

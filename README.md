@@ -2,7 +2,7 @@
 
 **Sorts what washes up.** A lightweight Joomla module that pulls articles from chosen categories into filterable, sortable cards with six layouts.
 
-By Chaotic Fish Design Studio · Version 1.1.0 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
+By Chaotic Fish Design Studio · Version 1.1.1 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
 
 ---
 
@@ -28,7 +28,7 @@ The installer checks PHP and Joomla first and stops with a plain message if eith
 
 ## Install
 
-1. Extensions → Install → upload `mod_tidewrack-1.1.0.zip`.
+1. Extensions → Install → upload `mod_tidewrack-1.1.1.zip`.
 2. Content → Site Modules → New → **Tidewrack**.
 3. Pick at least one category, assign a position and menu items, save.
 
@@ -180,7 +180,7 @@ Switched on by default, off under **Advanced → Extras**.
 | Type `tancho` | Tancho trots down the Tide Line spine in Tide Line, or along the top of the cards in every other layout, kicking up dust. |
 | **Do not press** button | One of the four at random. The wording is a setting. |
 | Long-press **Clear filters** (touch) | One of the four at random. |
-| Filters match nothing | Tancho reports in beside his mud puddle: "Found mud." (An empty category gets him too.) |
+| Filters match nothing | Tancho ("Found mud.") or Ziggy in his pirate hat ("No treasure here.") reports in, picked at random each time. An empty category gets one of them too. |
 
 Typing inside the search box or any form field never triggers them. Only one extra appears at a time. Under `prefers-reduced-motion`, they fade in and out in place instead of moving.
 
@@ -216,7 +216,8 @@ media/js/tidewrack.js              readable source
 media/js/tidewrack.min.js          loaded on the site
 media/images/cleaner-wrasse.svg
 media/images/kokido-peek--240.webp
-media/images/hawke.svg, tancho.svg  Wayfin's goat and horse
+media/images/hawke.svg, tancho.svg  Wayfin's goat and horse (Extras)
+media/images/tancho-face.webp, ziggy-face.webp  "nothing matches" portraits
 README.md, CHANGELOG.md, LICENSE.txt
 ```
 

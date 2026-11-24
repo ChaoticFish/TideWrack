@@ -21,15 +21,26 @@ use Joomla\CMS\Language\Text;
 $e = static fn ($s) => htmlspecialchars((string) $s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 $extras = (int) $params->get('extras', 1);
-$tancho = static function (string $lead, string $text) use ($e, $media): string {
-    return '<div class="twk-empty twk-empty--tancho"><span class="twk-tancho" aria-hidden="true">'
-        . '<img src="' . $e($media) . 'images/tancho.svg" alt="" width="96" height="72"><span class="twk-mud"></span></span>'
-        . '<p><strong>' . $lead . '</strong> ' . $text . '</p></div>';
+// Nothing matches: Tancho or Ziggy reports in (one at random; the script re-picks each time it appears).
+$mascots = static function (array $lines) use ($e, $media): string {
+    $pick = array_rand($lines);
+    $html = '<div class="twk-empty twk-empty--mascot">';
+
+    foreach ($lines as $who => [$lead, $text]) {
+        $html .= '<div class="twk-mascot" data-twk-mascot="' . $who . '"' . ($who === $pick ? '' : ' hidden') . '>'
+            . '<img src="' . $e($media) . 'images/' . $who . '-face.webp" alt="" width="120" height="120">'
+            . '<p><strong>' . $lead . '</strong> ' . $text . '</p></div>';
+    }
+
+    return $html . '</div>';
 };
 
 if (!$items) {
     echo '<div class="twk twk--none">' . ($extras
-        ? $tancho(Text::_('MOD_TIDEWRACK_NO_ITEMS'), Text::_('MOD_TIDEWRACK_NO_ITEMS_TANCHO'))
+        ? $mascots([
+            'tancho' => [Text::_('MOD_TIDEWRACK_NO_ITEMS'), Text::_('MOD_TIDEWRACK_NO_ITEMS_TANCHO')],
+            'ziggy'  => [Text::_('MOD_TIDEWRACK_NO_ITEMS'), Text::_('MOD_TIDEWRACK_NO_ITEMS_ZIGGY')],
+        ])
         : '<p class="twk-empty">' . Text::_('MOD_TIDEWRACK_NO_ITEMS') . '</p>') . '</div>';
 
     return;
@@ -259,7 +270,10 @@ $sortOptions = [
     </div>
 
 <?php if ($extras) : ?>
-    <div data-twk-empty hidden><?php echo $tancho(Text::_('MOD_TIDEWRACK_NONE_LEAD'), Text::_('MOD_TIDEWRACK_NONE_TANCHO')); ?></div>
+    <div data-twk-empty hidden><?php echo $mascots([
+        'tancho' => [Text::_('MOD_TIDEWRACK_NONE_LEAD'), Text::_('MOD_TIDEWRACK_NONE_TANCHO')],
+        'ziggy'  => [Text::_('MOD_TIDEWRACK_NONE_ZIGGY_LEAD'), Text::_('MOD_TIDEWRACK_NONE_ZIGGY')],
+    ]); ?></div>
 <?php else : ?>
     <p class="twk-empty" data-twk-empty hidden><?php echo Text::_('MOD_TIDEWRACK_JS_NONE'); ?></p>
 <?php endif; ?>

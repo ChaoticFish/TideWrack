@@ -1,4 +1,4 @@
-/*! Tidewrack 1.1.0 — Chaotic Fish Design Studio */
+/*! Tidewrack 1.1.1 — Chaotic Fish Design Studio */
 .twk{--twk-accent:var(--bs-primary,#0d6efd);--twk-bg:var(--bs-body-bg,#fff);--twk-border:var(--bs-border-color,#dee2e6);--twk-card:var(--bs-body-bg,#fff);--twk-cols:3;--twk-fg:var(--bs-body-color,#212529);--twk-gap:1.5rem;--twk-muted:var(--bs-secondary-color,#6c757d);--twk-radius:var(--bs-border-radius-lg,.5rem);--twk-scrawl:"Caveat","Marker Felt","Segoe Print","Bradley Hand","Chalkboard SE",cursive;--twk-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.06);--twk-shadow-up:0 2px 4px rgba(0,0,0,.08),0 12px 28px rgba(0,0,0,.12);color:var(--twk-fg);overflow-x:clip;position:relative}
 .twk--cols-2{--twk-cols:2}
 .twk--cols-3{--twk-cols:3}
@@ -71,11 +71,11 @@ button.twk-tag:hover,button.twk-tag:focus-visible,button.twk-tag:active,.twk-tag
 .twk-more-wrap:empty{display:none}
 .twk-more{overflow:hidden;position:relative}
 .twk-more--rolling::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M0 10q10-8 20 0t20 0V20H0Z'/%3E%3C/svg%3E") 0 100%/40px 100% repeat-x;animation:twk-roll .9s ease-out forwards;background:currentColor;content:"";height:100%;left:0;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M0 10q10-8 20 0t20 0V20H0Z'/%3E%3C/svg%3E") 0 100%/40px 100% repeat-x;opacity:.22;pointer-events:none;position:absolute;top:0;width:100%}
-.twk-empty--tancho{align-items:center;display:flex;flex-direction:column;font-style:normal;gap:.9rem}
-.twk-empty--tancho p{margin:0;max-width:32rem}
-.twk-tancho{display:block;position:relative}
-.twk-tancho img{animation:twk-sniff 2.2s ease-in-out 2;display:block;height:auto;position:relative;transform-origin:75% 100%;width:96px;z-index:1}
-.twk-mud{background:radial-gradient(ellipse at center,#6b4a2b 0 42%,rgba(107,74,43,.35) 66%,transparent 70%);bottom:-3px;display:block;height:16px;left:52%;position:absolute;width:76px}
+.twk-empty--mascot{font-style:normal}
+.twk-mascot{align-items:center;display:flex;flex-direction:column;gap:.9rem}
+.twk-mascot[hidden]{display:none}
+.twk-mascot p{margin:0;max-width:32rem}
+.twk-mascot img{animation:twk-peek .7s cubic-bezier(.3,1.5,.5,1);border:3px solid var(--twk-card);border-radius:50%;box-shadow:var(--twk-shadow-up);display:block;height:120px;object-fit:cover;width:120px}
 .twk--frontpage .twk-items{border-top:3px double var(--twk-fg);padding-top:var(--twk-gap)}
 .twk--frontpage .twk-title{font-family:Georgia,"Times New Roman",serif}
 .twk--frontpage .twk-card:not(.twk-lead){background:transparent;border:0;border-radius:0;box-shadow:none}
@@ -176,11 +176,9 @@ html.a11y-overlay .twk--contactsheet .twk-badge{background-color:rgba(21,20,18,.
 	from { transform: translateX(-100%); }
 	to { transform: translateX(100%); }
 }
-@keyframes twk-sniff {
-	0%, 100% { rotate: 0deg; }
-	30% { rotate: 4deg; }
-	45% { rotate: 2deg; }
-	60% { rotate: 5deg; }
+@keyframes twk-peek {
+	from { opacity: 0; transform: translateY(14px) rotate(-8deg) scale(.85); }
+	to { opacity: 1; transform: none; }
 }
 @keyframes twk-chew {
 	to { rotate: -7deg; }
@@ -242,7 +240,7 @@ html.a11y-overlay .twk--contactsheet .twk-badge{background-color:rgba(21,20,18,.
 	.twk-kokido.is-up img{opacity:1}
 	.twk-caught{animation:none;box-shadow:0 0 0 3px var(--twk-accent)}
 	.twk-tag--chomp{animation:none;opacity:0;transition:opacity .4s}
-	.twk-tag--regrow,.twk-hawke.is-chewing,.twk-tancho-run,.twk-tancho img,.twk-dust{animation:none}
+	.twk-tag--regrow,.twk-hawke.is-chewing,.twk-tancho-run,.twk-mascot img,.twk-dust{animation:none}
 	.twk-card:hover .twk-art-drift,.twk-card:focus-within .twk-art-drift{animation:none}
 	.twk-more--rolling::before{animation:none;opacity:0}
 }

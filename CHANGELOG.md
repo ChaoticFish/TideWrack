@@ -2,6 +2,11 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.1.1 — 2026-11-10
+
+### Changed
+- When nothing matches, a round photo of **Tancho** ("Found mud.") or **Ziggy** in his pirate hat ("No treasure here.") reports in, picked at random each time, in place of the drawn Tancho. Same for an empty category. Both portraits are small WebPs (8 and 10 KB) that only load when shown.
+
 ## 1.1.0 — 2026-11-10
 
 ### Added

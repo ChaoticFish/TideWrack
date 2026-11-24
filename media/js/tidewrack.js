@@ -1,5 +1,5 @@
 /*!
- * Tidewrack 1.1.0 — Chaotic Fish Design Studio
+ * Tidewrack 1.1.1 — Chaotic Fish Design Studio
  * Client-side tag filtering, search, sort and reveal for mod_tidewrack.
  * No dependencies. Every module instance on a page runs independently.
  */
@@ -270,6 +270,14 @@
 		this.cards.forEach(function (c) { ro.observe(c.el); });
 	};
 
+	/** Tancho or Ziggy, at random, each time the "nothing matches" message appears. */
+	Tidewrack.prototype.pickMascot = function () {
+		var all = this.empty$.querySelectorAll('[data-twk-mascot]');
+		if (all.length < 2) { return; }
+		var pick = Math.floor(Math.random() * all.length);
+		Array.prototype.forEach.call(all, function (el, i) { el.hidden = i !== pick; });
+	};
+
 	/* ---------- Beachcombed marks ---------- */
 
 	Tidewrack.prototype.remember = function (link) {
@@ -394,7 +402,11 @@
 		if (this.sort$) { this.sort$.value = this.sort; }
 		if (this.clear$) { this.clear$.setAttribute('aria-disabled', this.tags.length || this.q ? 'false' : 'true'); }
 
-		if (this.empty$) { this.empty$.hidden = hits.length !== 0; }
+		if (this.empty$) {
+			var wasHidden = this.empty$.hidden;
+			this.empty$.hidden = hits.length !== 0;
+			if (wasHidden && !this.empty$.hidden) { this.pickMascot(); }
+		}
 		if (this.cast$) { this.cast$.disabled = hits.length === 0; }
 		if (this.more$) { this.more$.hidden = hits.length <= limit; }
 		if (this.status$) { this.status$.textContent = !hits.length ? this.s.none : hits.length === 1 ? this.s.one : fmt(this.s.showing, this.visible.length, hits.length); }
