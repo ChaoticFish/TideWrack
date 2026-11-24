@@ -26,6 +26,9 @@ final class TidewrackHelper implements DatabaseAwareInterface
 {
     use DatabaseAwareTrait;
 
+    /** Directory listings of ShrinkRay output folders, keyed by folder. */
+    private array $copyCache = [];
+
     /** Tags kept in intro text. <b> and <i> are normalised to <strong> and <em>. */
     private const KEEP = ['strong', 'em', 'br'];
 
@@ -275,46 +278,75 @@ final class TidewrackHelper implements DatabaseAwareInterface
     }
 
     /**
-     * Build a srcset from ShrinkRay's double-dash copies (photo--333.webp) when they exist on disk.
-     * Looks in the configured output folder (mirrored sub-path first, then flat), else beside the original.
+     * Build a srcset from ShrinkRay's copies when they exist on disk.
+     *
+     * ShrinkRay writes images/<sub/path>/photo.jpg as <output folder>/<sub/path>/photo--<width>.webp,
+     * mirroring the folders inside images/ (default output folder: images/_sized). Only images inside
+     * images/ are converted, so anything else is left alone. Copies are found by listing the folder,
+     * so the widths don't need to be configured; the optional width list narrows them down.
      */
     private function shrinkraySrcset(string $path, int $origWidth, Registry $params): string
     {
-        $sizes = array_filter(array_map('intval', explode(',', (string) $params->get('srcset_sizes', '333,666,1000'))));
+        $path = rawurldecode((string) strtok($path, '?#'));
 
-        if (!$sizes) {
+        if (strpos($path, 'images/') !== 0) {
             return '';
         }
 
-        $path   = rawurldecode(strtok($path, '?#'));
-        $dir    = trim(\dirname($path), './');
-        $name   = pathinfo($path, PATHINFO_FILENAME);
-        $folder = trim((string) $params->get('srcset_folder', ''), '/ ');
-        $tries  = $folder !== '' ? [$folder . '/' . $dir, $folder] : [$dir];
-        $set    = [];
+        $folder = trim(str_replace('\\', '/', (string) $params->get('srcset_folder', 'images/_sized')), '/ ');
+        $folder = $folder !== '' ? $folder : 'images/_sized';
 
-        sort($sizes);
+        if (strpos($path, $folder . '/') === 0 || preg_match('#(^|/)\.\.?(/|$)#', $folder)) {
+            return '';
+        }
 
-        foreach ($sizes as $w) {
-            foreach ($tries as $try) {
-                $rel = trim($try, '/') . '/' . $name . '--' . $w . '.webp';
+        $sub  = trim(\dirname(substr($path, \strlen('images/'))), './');
+        $dir  = $folder . ($sub !== '' ? '/' . $sub : '');
+        $name = pathinfo($path, PATHINFO_FILENAME);
+        $only = array_filter(array_map('intval', preg_split('/[\s,]+/', (string) $params->get('srcset_sizes', ''), -1, PREG_SPLIT_NO_EMPTY)));
+        $set  = [];
 
-                if (is_file(JPATH_ROOT . '/' . $rel)) {
-                    $set[$w] = Uri::root(true) . '/' . implode('/', array_map('rawurlencode', explode('/', $rel))) . ' ' . $w . 'w';
-                    break;
-                }
+        foreach ($this->listCopies($dir) as $file) {
+            if (!preg_match('/^(.+)--(\d+)\.webp$/', $file, $m) || $m[1] !== $name) {
+                continue;
             }
+
+            $w = (int) $m[2];
+
+            if ($only && !\in_array($w, $only, true)) {
+                continue;
+            }
+
+            $set[$w] = $this->webPath($dir . '/' . $file) . ' ' . $w . 'w';
         }
 
         if (!$set) {
             return '';
         }
 
+        ksort($set);
+
         if ($origWidth > max(array_keys($set))) {
-            $set[$origWidth] = Uri::root(true) . '/' . implode('/', array_map('rawurlencode', explode('/', $path))) . ' ' . $origWidth . 'w';
+            $set[$origWidth] = $this->webPath($path) . ' ' . $origWidth . 'w';
         }
 
         return implode(', ', $set);
+    }
+
+    /** File names in one ShrinkRay output folder, listed once per request. */
+    private function listCopies(string $dir): array
+    {
+        if (!isset($this->copyCache[$dir])) {
+            $full                  = JPATH_ROOT . '/' . $dir;
+            $this->copyCache[$dir] = is_dir($full) ? (scandir($full) ?: []) : [];
+        }
+
+        return $this->copyCache[$dir];
+    }
+
+    private function webPath(string $rel): string
+    {
+        return Uri::root(true) . '/' . implode('/', array_map('rawurlencode', explode('/', $rel)));
     }
 
     /** Remove {plugin tags} so shortcodes never leak into a summary. */

@@ -1,5 +1,5 @@
 /*!
- * Tidewrack 1.0.1 — Chaotic Fish Design Studio
+ * Tidewrack 1.0.2 — Chaotic Fish Design Studio
  * Client-side tag filtering, search, sort and reveal for mod_tidewrack.
  * No dependencies. Every module instance on a page runs independently.
  */
@@ -500,7 +500,7 @@
 			box.className = 'twk-kokido' + (host === card ? ' twk-kokido--edge' : '');
 			box.setAttribute('aria-hidden', 'true');
 			box.style.left = (10 + Math.random() * 55) + '%';
-			cat.src = inst.root.getAttribute('data-twk-img-kokido') || inst.media + 'images/kokido-peek--240.png';
+			cat.src = inst.root.getAttribute('data-twk-img-kokido') || inst.media + 'images/kokido-peek--240.webp';
 			cat.alt = '';
 			box.appendChild(cat);
 			host.appendChild(box);

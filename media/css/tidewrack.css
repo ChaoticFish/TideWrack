@@ -1,5 +1,5 @@
-/*! Tidewrack 1.0.1 — Chaotic Fish Design Studio */
-.twk{--twk-accent:var(--bs-primary,#0d6efd);--twk-bg:var(--bs-body-bg,#fff);--twk-border:var(--bs-border-color,#dee2e6);--twk-card:var(--bs-body-bg,#fff);--twk-cols:3;--twk-fg:var(--bs-body-color,#212529);--twk-gap:1.5rem;--twk-muted:var(--bs-secondary-color,#6c757d);--twk-radius:var(--bs-border-radius-lg,.5rem);--twk-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.06);--twk-shadow-up:0 2px 4px rgba(0,0,0,.08),0 12px 28px rgba(0,0,0,.12);color:var(--twk-fg);overflow-x:clip;position:relative}
+/*! Tidewrack 1.0.2 — Chaotic Fish Design Studio */
+.twk{--twk-accent:var(--bs-primary,#0d6efd);--twk-bg:var(--bs-body-bg,#fff);--twk-border:var(--bs-border-color,#dee2e6);--twk-card:var(--bs-body-bg,#fff);--twk-cols:3;--twk-fg:var(--bs-body-color,#212529);--twk-gap:1.5rem;--twk-muted:var(--bs-secondary-color,#6c757d);--twk-radius:var(--bs-border-radius-lg,.5rem);--twk-scrawl:"Caveat","Marker Felt","Segoe Print","Bradley Hand","Chalkboard SE",cursive;--twk-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.06);--twk-shadow-up:0 2px 4px rgba(0,0,0,.08),0 12px 28px rgba(0,0,0,.12);color:var(--twk-fg);overflow-x:clip;position:relative}
 .twk--cols-2{--twk-cols:2}
 .twk--cols-3{--twk-cols:3}
 .twk--cols-4{--twk-cols:4}
@@ -16,7 +16,7 @@
 .twk-chip[aria-pressed=true]{background:var(--twk-accent);border-color:var(--twk-accent);color:#fff}
 .twk-count{background:rgba(127,127,127,.18);border-radius:999px;font-size:.75em;min-width:1.6em;padding:.05rem .4rem;text-align:center}
 .twk-chip[aria-pressed=true] .twk-count{background:rgba(255,255,255,.25)}
-.twk-chip--empty{cursor:default;opacity:.45}
+.twk-chip--empty{border-style:dashed;cursor:default;opacity:.45}
 .twk-chip--empty:hover,.twk-chip--empty:active{border-color:var(--twk-border)}
 .twk .btn-outline-secondary.active,.twk .btn-outline-secondary[aria-pressed=true]{background-color:var(--bs-secondary,#6c757d);border-color:var(--bs-secondary,#6c757d);color:#fff}
 .twk-clear[aria-disabled=true]{cursor:default;opacity:.45}
@@ -72,11 +72,11 @@ button.twk-tag:hover,button.twk-tag:focus-visible,button.twk-tag:active,.twk-tag
 .twk--contactsheet .twk-media::before{color:#f2a900;content:"\25B8  TWK 400";font:700 .6rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;left:.5rem;letter-spacing:.14em;opacity:.85;position:absolute;text-shadow:0 0 3px #000;top:.4rem;z-index:1}
 .twk--contactsheet .twk-body{padding:.65rem .1rem 0}
 .twk--contactsheet .twk-meta{color:#a59e8e}
-.twk--contactsheet .twk-title{color:#ffd23f;font-family:"Marker Felt","Segoe Print","Bradley Hand","Chalkboard SE",cursive;font-size:1.1rem;transform:rotate(-1.2deg);transform-origin:left center}
+.twk--contactsheet .twk-title{color:#ffd23f;font-family:var(--twk-scrawl);font-size:1.1rem;font-size-adjust:.5;transform:rotate(-1.2deg);transform-origin:left center}
 .twk--contactsheet .twk-alt .twk-title{transform:rotate(.9deg)}
 .twk--contactsheet .twk-link:hover,.twk--contactsheet .twk-link:focus,.twk--contactsheet .twk-link:active{color:#fff}
 .twk--contactsheet .twk-intro{color:#d4cdbd;opacity:1}
-.twk--contactsheet .twk-badge{background:rgba(21,20,18,.65);border:2px solid #e8412c;border-radius:48% 52% 45% 55%/55% 45% 55% 45%;box-shadow:none;color:#ff6a52;font-family:"Marker Felt","Segoe Print","Bradley Hand","Chalkboard SE",cursive;font-size:.85rem;left:auto;letter-spacing:0;right:.6rem;text-transform:none;transform:rotate(-6deg)}
+.twk--contactsheet .twk-badge{background:rgba(21,20,18,.65);border:2px solid #e8412c;border-radius:48% 52% 45% 55%/55% 45% 55% 45%;box-shadow:none;color:#ff6a52;font-family:var(--twk-scrawl);font-size:.85rem;font-size-adjust:.5;left:auto;letter-spacing:0;right:.6rem;text-transform:none;transform:rotate(-6deg)}
 .twk--contactsheet .twk-tag{background:rgba(255,255,255,.1);color:#efe9dc}
 .twk--contactsheet button.twk-tag:hover,.twk--contactsheet button.twk-tag:focus-visible,.twk--contactsheet button.twk-tag:active,.twk--contactsheet .twk-tag[aria-pressed=true]{background:#ffd23f;color:#151412}
 .twk--tideline .twk-items{column-gap:4rem;grid-auto-rows:minmax(min-content,auto);grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:.5rem 0;position:relative;row-gap:.75rem}
@@ -108,6 +108,17 @@ button.twk-tag:hover,button.twk-tag:focus-visible,button.twk-tag:active,.twk-tag
 .twk-kokido--edge{bottom:calc(100% - 1px)}
 .twk-kokido img{cursor:pointer;display:block;height:auto;pointer-events:auto;transform:translateY(105%);transition:transform .45s cubic-bezier(.34,1.56,.64,1);width:100%}
 .twk-kokido.is-up img{transform:translateY(15%)}
+/* A11y Toolbar (mod_a11ytoolbar): High Contrast recolours everything, so pressed states invert; Reading Overlay tints every background, so pressed states and Contact Sheet keep theirs */
+html.a11y-contrast .twk-chip[aria-pressed=true],html.a11y-contrast .twk-tag[aria-pressed=true],html.a11y-contrast .twk .btn-outline-secondary.active,html.a11y-contrast .twk .btn-outline-secondary[aria-pressed=true],html.a11y-contrast .twk-badge{background-color:var(--a11y-contrast-text,#fff)!important;color:var(--a11y-contrast-bg,#000)!important}
+html.a11y-contrast .twk :focus-visible,html.a11y-contrast .twk-card:has(.twk-link:focus-visible){outline-color:var(--a11y-contrast-link,#ff0)!important}
+html.a11y-overlay .twk-chip[aria-pressed=true],html.a11y-overlay .twk-tag[aria-pressed=true],html.a11y-overlay .twk-badge{background-color:var(--twk-accent)!important}
+html.a11y-overlay .twk-chip[aria-pressed=true] .twk-count{background-color:rgba(255,255,255,.25)!important}
+html.a11y-overlay .twk .btn-outline-secondary.active,html.a11y-overlay .twk .btn-outline-secondary[aria-pressed=true]{background-color:var(--bs-secondary,#6c757d)!important}
+html.a11y-overlay .twk--contactsheet .twk-items{background-color:#151412!important}
+html.a11y-overlay .twk--contactsheet .twk-card,html.a11y-overlay .twk--contactsheet .twk-card *:not(.twk-tag):not(.twk-badge){background-color:transparent!important}
+html.a11y-overlay .twk--contactsheet .twk-tag{background-color:rgba(255,255,255,.1)!important}
+html.a11y-overlay .twk--contactsheet .twk-tag[aria-pressed=true]{background-color:#ffd23f!important}
+html.a11y-overlay .twk--contactsheet .twk-badge{background-color:rgba(21,20,18,.65)!important}
 @keyframes twk-nibble {
 	0% { transform: none; }
 	25% { transform: rotate(-1.4deg) translateY(-3px); }

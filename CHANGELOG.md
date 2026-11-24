@@ -2,6 +2,25 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.0.2 — 2026-11-10
+
+### Added
+- Install checks: Tidewrack refuses PHP below 8.2 and Joomla below 5, with a plain message, before anything is installed.
+- CFD update server: updates arrive through Joomla's updater.
+- `LICENSE.txt` (GPL v2), which the manifest already pointed to.
+- `build.py`: version check, CSS order check, minify, demo refresh, install and source zips, update-server release.
+- High Contrast and Reading Overlay support for A11y Toolbar: pressed chips, tags, buttons and the Featured badge stay visible, and Contact Sheet stays readable under the overlay.
+
+### Changed
+- Contact Sheet's handwriting uses Caveat when the site loads it, with sizes evened out across fallback fonts. Override with `--twk-scrawl`.
+- Dimmed tag chips get a dashed border as well as fading.
+- Kokido is a WebP now (15 KB instead of 72 KB).
+- The demo page ships beside the install zip instead of inside it.
+- Docs say Joomla 5 and 6, PHP 8.2+.
+
+### Fixed
+- ShrinkRay `srcset` now follows ShrinkRay's real layout (`images/_sized/<path inside images>/name--333.webp`), so images in subfolders get their copies. Copies are found by listing the folder, so the widths no longer need to be typed in; the width list is now an optional filter. Sites upgrading from 1.0.1 keep their saved `333,666,1000`, which still works; clear it to use every copy.
+
 ## 1.0.1 — 2026-10-09
 
 ### Fixed

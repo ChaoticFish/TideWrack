@@ -162,7 +162,7 @@ $sortOptions = [
                 <img src="<?php echo $e($img->src); ?>" alt="<?php echo $e($img->alt); ?>"<?php
                     echo $img->width ? ' width="' . $img->width . '"' : '';
                     echo $img->height ? ' height="' . $img->height . '"' : '';
-                    echo $img->srcset ? ' srcset="' . $e($img->srcset) . '" sizes="' . $e($sizes) . '"' : '';
+                    echo $img->srcset ? ' srcset="' . $e($img->srcset) . '" sizes="' . $e($sizes) . '"' : ' data-shrinkray-sizes="' . $e($sizes) . '"';
                 ?> loading="<?php echo $i < 3 ? 'eager' : 'lazy'; ?>" decoding="async">
 <?php else : ?>
                 <span class="twk-media-fallback" aria-hidden="true"></span>

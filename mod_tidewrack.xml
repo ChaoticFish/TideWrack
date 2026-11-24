@@ -6,8 +6,9 @@
 	<creationDate>2026-10</creationDate>
 	<copyright>(C) 2026 Chaotic Fish Design Studio</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<description>MOD_TIDEWRACK_XML_DESCRIPTION</description>
+	<scriptfile>script.php</scriptfile>
 	<namespace path="src">ChaoticFishDesign\Module\Tidewrack</namespace>
 
 	<files>
@@ -159,8 +160,8 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="srcset_sizes" type="text" default="333,666,1000" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETSIZES_LABEL" description="MOD_TIDEWRACK_SRCSETSIZES_DESC" />
-				<field name="srcset_folder" type="text" default="" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETFOLDER_LABEL" description="MOD_TIDEWRACK_SRCSETFOLDER_DESC" />
+				<field name="srcset_sizes" type="text" default="" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETSIZES_LABEL" description="MOD_TIDEWRACK_SRCSETSIZES_DESC" />
+				<field name="srcset_folder" type="text" default="images/_sized" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETFOLDER_LABEL" description="MOD_TIDEWRACK_SRCSETFOLDER_DESC" />
 			</fieldset>
 
 			<fieldset name="advanced">
