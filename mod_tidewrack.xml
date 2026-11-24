@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="module" client="site" method="upgrade">
+	<name>MOD_TIDEWRACK</name>
+	<author>Chaotic Fish Design Studio</author>
+	<authorUrl>https://chaoticfishdesign.com</authorUrl>
+	<creationDate>2026-10</creationDate>
+	<copyright>(C) 2026 Chaotic Fish Design Studio</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<version>1.0.0</version>
+	<description>MOD_TIDEWRACK_XML_DESCRIPTION</description>
+	<namespace path="src">ChaoticFishDesign\Module\Tidewrack</namespace>
+
+	<files>
+		<folder module="mod_tidewrack">services</folder>
+		<folder>src</folder>
+		<folder>tmpl</folder>
+	</files>
+
+	<media destination="mod_tidewrack" folder="media">
+		<folder>css</folder>
+		<folder>js</folder>
+		<folder>images</folder>
+	</media>
+
+	<languages folder="language">
+		<language tag="en-GB">en-GB/mod_tidewrack.ini</language>
+		<language tag="en-GB">en-GB/mod_tidewrack.sys.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+
+			<fieldset name="basic" label="MOD_TIDEWRACK_FIELDSET_SOURCE">
+				<field name="catid" type="category" extension="com_content" multiple="true" layout="joomla.form.field.list-fancy-select" required="true" label="MOD_TIDEWRACK_CATID_LABEL" description="MOD_TIDEWRACK_CATID_DESC" />
+				<field name="subcats" type="radio" default="1" label="MOD_TIDEWRACK_SUBCATS_LABEL" description="MOD_TIDEWRACK_SUBCATS_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="featured" type="list" default="show" label="MOD_TIDEWRACK_FEATURED_LABEL">
+					<option value="show">MOD_TIDEWRACK_FEATURED_SHOW</option>
+					<option value="only">MOD_TIDEWRACK_FEATURED_ONLY</option>
+					<option value="hide">MOD_TIDEWRACK_FEATURED_HIDE</option>
+				</field>
+				<field name="lang_filter" type="radio" default="1" label="MOD_TIDEWRACK_LANG_LABEL" description="MOD_TIDEWRACK_LANG_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="max_items" type="number" default="60" min="1" max="100" step="1" filter="integer" label="MOD_TIDEWRACK_MAX_LABEL" description="MOD_TIDEWRACK_MAX_DESC" />
+				<field name="tag_whitelist" type="tag" mode="nested" multiple="true" custom="deny" label="MOD_TIDEWRACK_WHITELIST_LABEL" description="MOD_TIDEWRACK_WHITELIST_DESC" />
+			</fieldset>
+
+			<fieldset name="sorting" label="MOD_TIDEWRACK_FIELDSET_SORTING">
+				<field name="sort_default" type="list" default="pub_desc" label="MOD_TIDEWRACK_SORT_LABEL" description="MOD_TIDEWRACK_SORT_DESC">
+					<option value="pub_desc">MOD_TIDEWRACK_SORT_PUB_DESC</option>
+					<option value="pub_asc">MOD_TIDEWRACK_SORT_PUB_ASC</option>
+					<option value="mod_desc">MOD_TIDEWRACK_SORT_MOD_DESC</option>
+					<option value="mod_asc">MOD_TIDEWRACK_SORT_MOD_ASC</option>
+					<option value="title_asc">MOD_TIDEWRACK_SORT_TITLE_ASC</option>
+				</field>
+				<field name="sort_visitor" type="radio" default="1" label="MOD_TIDEWRACK_SORT_VISITOR_LABEL" description="MOD_TIDEWRACK_SORT_VISITOR_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+			</fieldset>
+
+			<fieldset name="filtering" label="MOD_TIDEWRACK_FIELDSET_FILTERING">
+				<field name="show_filters" type="radio" default="1" label="MOD_TIDEWRACK_FILTERS_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="tag_mode" type="list" default="any" showon="show_filters:1" label="MOD_TIDEWRACK_TAGMODE_LABEL" description="MOD_TIDEWRACK_TAGMODE_DESC">
+					<option value="any">MOD_TIDEWRACK_TAGMODE_ANY</option>
+					<option value="all">MOD_TIDEWRACK_TAGMODE_ALL</option>
+				</field>
+				<field name="mode_toggle" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_MODETOGGLE_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_counts" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_COUNTS_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_search" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_SEARCH_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_clear" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_CLEAR_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="url_state" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_URLSTATE_LABEL" description="MOD_TIDEWRACK_URLSTATE_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+			</fieldset>
+
+			<fieldset name="display" label="MOD_TIDEWRACK_FIELDSET_DISPLAY">
+				<field name="style" type="list" default="grid" label="MOD_TIDEWRACK_STYLE_LABEL" description="MOD_TIDEWRACK_STYLE_DESC">
+					<option value="grid">MOD_TIDEWRACK_STYLE_GRID</option>
+					<option value="frontpage">MOD_TIDEWRACK_STYLE_FRONTPAGE</option>
+					<option value="contactsheet">MOD_TIDEWRACK_STYLE_CONTACTSHEET</option>
+					<option value="tideline">MOD_TIDEWRACK_STYLE_TIDELINE</option>
+					<option value="list">MOD_TIDEWRACK_STYLE_LIST</option>
+					<option value="masonry">MOD_TIDEWRACK_STYLE_MASONRY</option>
+				</field>
+				<field name="columns" type="list" default="3" showon="style!:tideline[AND]style!:list" label="MOD_TIDEWRACK_COLUMNS_LABEL">
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+				</field>
+				<field name="view_toggle" type="radio" default="0" showon="style!:list" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="initial_count" type="number" default="9" min="0" max="100" step="1" filter="integer" label="MOD_TIDEWRACK_INITIAL_LABEL" description="MOD_TIDEWRACK_INITIAL_DESC" />
+				<field name="more_step" type="number" default="6" min="1" max="100" step="1" filter="integer" showon="initial_count!:0" label="MOD_TIDEWRACK_MORESTEP_LABEL" />
+				<field name="heading_level" type="list" default="3" label="MOD_TIDEWRACK_HEADING_LABEL">
+					<option value="2">H2</option>
+					<option value="3">H3</option>
+					<option value="4">H4</option>
+				</field>
+				<field name="intro_length" type="number" default="180" min="0" max="2000" step="10" filter="integer" label="MOD_TIDEWRACK_INTROLEN_LABEL" description="MOD_TIDEWRACK_INTROLEN_DESC" />
+				<field name="show_image" type="radio" default="1" label="MOD_TIDEWRACK_IMAGE_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="featured_badge" type="radio" default="1" label="MOD_TIDEWRACK_BADGE_LABEL" description="MOD_TIDEWRACK_BADGE_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="date_type" type="list" default="published" label="MOD_TIDEWRACK_DATETYPE_LABEL">
+					<option value="published">MOD_TIDEWRACK_DATETYPE_PUBLISHED</option>
+					<option value="modified">MOD_TIDEWRACK_DATETYPE_MODIFIED</option>
+					<option value="none">JNONE</option>
+				</field>
+				<field name="date_format" type="text" default="M j, Y" showon="date_type!:none" label="MOD_TIDEWRACK_DATEFORMAT_LABEL" description="MOD_TIDEWRACK_DATEFORMAT_DESC" />
+				<field name="show_tags" type="radio" default="1" label="MOD_TIDEWRACK_SHOWTAGS_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_readtime" type="radio" default="1" label="MOD_TIDEWRACK_READTIME_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="wpm" type="number" default="200" min="100" max="400" step="10" filter="integer" showon="show_readtime:1" label="MOD_TIDEWRACK_WPM_LABEL" />
+				<field name="show_author" type="radio" default="0" label="MOD_TIDEWRACK_AUTHOR_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="show_category" type="radio" default="0" label="MOD_TIDEWRACK_CATEGORY_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+			</fieldset>
+
+			<fieldset name="images" label="MOD_TIDEWRACK_FIELDSET_IMAGES">
+				<field name="note_shrinkray" type="note" class="alert alert-info" description="MOD_TIDEWRACK_SHRINKRAY_NOTE" />
+				<field name="srcset" type="radio" default="1" label="MOD_TIDEWRACK_SRCSET_LABEL" description="MOD_TIDEWRACK_SRCSET_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="srcset_sizes" type="text" default="333,666,1000" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETSIZES_LABEL" description="MOD_TIDEWRACK_SRCSETSIZES_DESC" />
+				<field name="srcset_folder" type="text" default="" showon="srcset:1" label="MOD_TIDEWRACK_SRCSETFOLDER_LABEL" description="MOD_TIDEWRACK_SRCSETFOLDER_DESC" />
+			</fieldset>
+
+			<fieldset name="advanced">
+				<field name="extras" type="radio" default="1" label="MOD_TIDEWRACK_EXTRAS_LABEL" description="MOD_TIDEWRACK_EXTRAS_DESC">
+					<option value="1">JYES</option>
+					<option value="0">MOD_TIDEWRACK_EXTRAS_OFF</option>
+				</field>
+				<field name="moduleclass_sfx" type="textarea" rows="2" label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL" />
+			</fieldset>
+
+		</fields>
+	</config>
+</extension>
