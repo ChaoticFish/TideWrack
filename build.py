@@ -10,18 +10,24 @@ Steps:
      (Dispatcher asset version, CSS and JS source headers, README, CHANGELOG entry).
   2. Check CSS property order (alphabetical within each rule; @keyframes skipped).
   3. Minify tidewrack.css / tidewrack.js into the .min files the site loads (keeps the /*! header).
-  4. Refresh the standalone demo: re-inline the minified CSS/JS and the Extras images.
+     Uses terser and csso when they're on the PATH (as Wayfin's build does), else rjsmin/rcssmin.
+  4. Render the standalone demo from the real template (demo/render.php + demo/shell.html, needs PHP),
+     with the minified CSS/JS and every image inlined, so it's one self-contained file.
   5. Write dist/mod_tidewrack-<version>.zip (install), dist/mod_tidewrack-<version>-source.zip
-     (everything, including this script and the demo) and dist/tidewrack-demo.html.
+     (everything, including this script and demo/) and dist/tidewrack-demo.html.
   6. Call cfd_update.release('mod_tidewrack', <install zip>) from the shared generator, found through
      the CFD_UPDATES environment variable (default: sibling folder ../cfd-updates).
 
-Needs Python 3.8+ and the pure-Python minifiers:  pip install rjsmin rcssmin
+Needs Python 3.8+, PHP 8.2+ for the demo, and either terser + csso (npm i -g terser csso-cli)
+or the pure-Python minifiers (pip install rjsmin rcssmin).
 """
 
 import base64
+import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -102,36 +108,60 @@ def header(text):
 
 
 def minify():
-    try:
-        import rcssmin
-        import rjsmin
-    except ImportError:
-        raise BuildError('Minifiers missing. Run: pip install rjsmin rcssmin')
     css = read('media/css/tidewrack.css')
     js = read('media/js/tidewrack.js')
     body_css = re.sub(r'^\s*/\*!.*?\*/', '', css, count=1, flags=re.S)
     body_js = re.sub(r'^\s*/\*!.*?\*/', '', js, count=1, flags=re.S)
-    write('media/css/tidewrack.min.css', header(css) + rcssmin.cssmin(body_css) + '\n')
-    write('media/js/tidewrack.min.js', header(js) + rjsmin.jsmin(body_js) + '\n')
+    terser, csso = shutil.which('terser'), shutil.which('csso')
+    if terser and csso:
+        min_js = subprocess.run([terser, '-c', '-m'], input=body_js, capture_output=True, text=True, check=True).stdout
+        min_css = subprocess.run([csso, '--no-restructure'], input=body_css, capture_output=True, text=True, check=True).stdout
+        tool = 'terser + csso'
+    else:
+        try:
+            import rcssmin
+            import rjsmin
+        except ImportError:
+            raise BuildError('No minifier. Run: npm i -g terser csso-cli   (or: pip install rjsmin rcssmin)')
+        min_js, min_css, tool = rjsmin.jsmin(body_js), rcssmin.cssmin(body_css), 'rjsmin + rcssmin'
+    write('media/css/tidewrack.min.css', header(css) + min_css.strip() + '\n')
+    write('media/js/tidewrack.min.js', header(js) + min_js.strip() + '\n')
+    return tool
 
 
 def data_uri(rel, mime):
     return 'data:%s;base64,%s' % (mime, base64.b64encode((ROOT / rel).read_bytes()).decode('ascii'))
 
 
-def refresh_demo():
-    html = read('tidewrack-demo.html')
-    css = read('media/css/tidewrack.min.css').strip()
-    js = read('media/js/tidewrack.min.js').strip()
-    for tag, body in (('css', css), ('js', js)):
-        pattern = r'(/\*twk:%s\*/\n).*?(\n/\*twk:%s-end\*/)' % (tag, tag)
-        if not re.search(pattern, html, re.S):
-            raise BuildError('Demo is missing its /*twk:%s*/ markers.' % tag)
-        html = re.sub(pattern, lambda m: m.group(1) + body + m.group(2), html, count=1, flags=re.S)
-    html = re.sub(r'data-twk-img-wrasse="[^"]*"',
-                  'data-twk-img-wrasse="%s"' % data_uri('media/images/cleaner-wrasse.svg', 'image/svg+xml'), html)
-    html = re.sub(r'data-twk-img-kokido="[^"]*"',
-                  'data-twk-img-kokido="%s"' % data_uri('media/images/kokido-peek--240.webp', 'image/webp'), html)
+IMAGES = {
+    'cleaner-wrasse.svg': ('wrasse', 'image/svg+xml'),
+    'kokido-peek--240.webp': ('kokido', 'image/webp'),
+    'hawke.svg': ('hawke', 'image/svg+xml'),
+    'tancho.svg': ('tancho', 'image/svg+xml'),
+}
+
+
+def render_demo(version):
+    php = shutil.which('php')
+    if not php:
+        print('Demo: PHP not found; kept the existing tidewrack-demo.html.')
+        return
+    run = lambda *a: subprocess.run([php, str(ROOT / 'demo' / 'render.php')] + list(a),
+                                    capture_output=True, text=True, check=True).stdout
+    module = run('{}')
+    art = json.loads(run('--art'))
+    uris = {name: data_uri('media/images/' + name, mime) for name, (_, mime) in IMAGES.items()}
+    for name, uri in uris.items():
+        module = module.replace('MEDIA/images/' + name, uri)
+    attrs = ''.join(' data-twk-img-%s="%s"' % (key, uris[name]) for name, (key, _) in IMAGES.items())
+    module = module.replace('data-twk-media="MEDIA/"', 'data-twk-media=""' + attrs, 1)
+    if 'MEDIA/' in module:
+        raise BuildError('Demo still has an un-inlined MEDIA/ path.')
+    html = read('demo/shell.html')
+    for key, value in (('CSS', read('media/css/tidewrack.min.css').strip()),
+                       ('JS', read('media/js/tidewrack.min.js').strip()),
+                       ('ART', json.dumps(art)), ('VERSION', version), ('MODULE', module)):
+        html = html.replace('{{%s}}' % key, value)
     write('tidewrack-demo.html', html)
 
 
@@ -177,16 +207,17 @@ def main():
     v = manifest_version()
     check_versions(v)
     check_css_order()
-    minify()
-    refresh_demo()
+    tool = minify()
+    render_demo(v)
 
     install = DIST / ('%s-%s.zip' % (ELEMENT, v))
     source = DIST / ('%s-%s-source.zip' % (ELEMENT, v))
     make_zip(install, INSTALL)
-    make_zip(source, INSTALL + ['build.py', 'tidewrack-demo.html'])
+    make_zip(source, INSTALL + ['build.py', 'demo', 'tidewrack-demo.html'])
     (DIST / 'tidewrack-demo.html').write_bytes((ROOT / 'tidewrack-demo.html').read_bytes())
 
     kb = install.stat().st_size / 1024
+    print('Minified with %s' % tool)
     print('Built %s (%.0f KB)' % (install.name, kb))
     print('Built %s and dist/tidewrack-demo.html' % source.name)
     print('Tools page: %.0f KB · PHP 8.2+ · Joomla 5 and 6' % kb)

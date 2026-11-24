@@ -2,7 +2,7 @@
 
 **Sorts what washes up.** A lightweight Joomla module that pulls articles from chosen categories into filterable, sortable cards with six layouts.
 
-By Chaotic Fish Design Studio · Version 1.0.3 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
+By Chaotic Fish Design Studio · Version 1.1.0 · Joomla 5 and 6 · PHP 8.2+ · GPL v2 or later
 
 ---
 
@@ -14,8 +14,9 @@ By Chaotic Fish Design Studio · Version 1.0.3 · Joomla 5 and 6 · PHP 8.2+ · 
 - Six layouts: **Grid**, **Front Page**, **Contact Sheet**, **Tide Line**, **Magazine List**, **Masonry**.
 - Cards reshuffle with a smooth animation when filters change (off under reduced motion).
 - Filtered views can live in the page address, so they can be bookmarked and shared.
+- Fun on top: generated art for image-less articles, a *Fresh catch* badge, *Cast a line* for a random pick, *Bring in the next tide*, *Beachcombed* read marks, and visiting staff (see *Extras*).
 
-Weight: about 5 KB of JavaScript and 4 KB of CSS, gzipped (minified files load; readable sources ship alongside). No libraries. It relies on the template's Bootstrap 5 for form controls, buttons, `visually-hidden` and `stretched-link`.
+Weight: about 6 KB of JavaScript and 5 KB of CSS, gzipped (minified files load; readable sources ship alongside). No libraries. It relies on the template's Bootstrap 5 for form controls, buttons, `visually-hidden` and `stretched-link`.
 
 ## Requirements
 
@@ -27,7 +28,7 @@ The installer checks PHP and Joomla first and stops with a plain message if eith
 
 ## Install
 
-1. Extensions → Install → upload `mod_tidewrack-1.0.3.zip`.
+1. Extensions → Install → upload `mod_tidewrack-1.1.0.zip`.
 2. Content → Site Modules → New → **Tidewrack**.
 3. Pick at least one category, assign a position and menu items, save.
 
@@ -75,6 +76,7 @@ The module has **no caching option on purpose**. A shared cache could hand one v
 | Tag Counts | Yes | Live: each chip shows how many articles it would show with the current search (and, in All mode, the tags already picked). Unpicked chips that would show nothing are dimmed and can't be picked. |
 | Search Box | Yes | Matches title + intro text; every word must match. <kbd>Esc</kbd> clears it. |
 | Clear Button | Yes | |
+| Cast a Line Button | Yes | Picks a random article from the current filters, reveals it if it's beyond *Show more*, scrolls it into view, wiggles it and announces "Caught: …". |
 | Shareable Filter Links | Yes | See *URL format* below. |
 
 ### Display
@@ -82,12 +84,16 @@ The module has **no caching option on purpose**. A shared cache could hand one v
 | --- | --- | --- |
 | Layout | Grid | See *Layouts*. |
 | Columns (desktop) | 3 | 2–4. Drops to 2 under 992px, 1 under 576px. |
+| Magazine List Columns | 1 | 1 or 2 rows of image-left cards. Two drop back to one below 992px. Also applies when visitors flip to List. |
 | Visitor Cards/List Toggle | No | Lets visitors flip between your layout and Magazine List. |
 | Initially Shown | 9 | 0 = show all, no Show More button. |
-| Show More Adds | 6 | |
+| Show More Adds | 6 | The button reads *Bring in the next tide*: a wave rolls across it and the new cards rise in one after another. |
 | Title Heading Level | H3 | H2–H4, to fit the page outline. |
 | Intro Length | 180 | Visible characters. Cut at a word, ellipsis added. 0 hides the intro. |
 | Show Image | Yes | |
+| No-Image Art | Tide | For articles with no image at all: **Tide** (layered waves that drift while the card is hovered or focused), **Shoreline** (sun, hills, birds) or **Gradient** (the colour wash from 1.0). Shapes and colours vary by article and never change for a given one. |
+| Fresh Catch Badge (days) | 14 | Badge on articles published (Start Publishing) within this many days. 0 = off. A grease-pencil star in Contact Sheet. |
+| Read Marks | Yes | Articles a visitor opened from the module (click or middle-click) get a *Beachcombed* mark. Stored in that visitor's browser only (`localStorage`, key `twk-beachcombed`, last 500), shared by every Tidewrack on the site. *Smooth the sand* clears them. |
 | Date Shown | Published | Published / Modified / None. |
 | Date Format | `M j, Y` | PHP date format. |
 | Tags on Cards | Yes | Clicking one filters by it. |
@@ -105,7 +111,9 @@ The module has **no caching option on purpose**. A shared cache could hand one v
 ### Advanced
 | Setting | Default | Notes |
 | --- | --- | --- |
-| Extras | Yes | Hidden visitors. Turning it off makes the fish sad. |
+| Extras | Yes | Hidden visitors, and Tancho's empty-state report. Turning it off makes the fish sad. |
+| Staff Button | Yes | A visible button that sends a random member of the staff through. Only with Extras on. |
+| Staff Button Text | *Do not press* | The words on that button. Empty = the default. |
 
 ## Intro text rules
 
@@ -116,7 +124,7 @@ The module has **no caching option on purpose**. A shared cache could hand one v
 
 ## Images
 
-Fallback order: **intro image → full-text image → first `<img>` in the article → colour gradient** (the hue is derived from the article ID, so it is stable).
+Fallback order: **intro image → full-text image → first `<img>` in the article → No-Image Art** (Tide, Shoreline or Gradient; colours and shapes come from the article ID, so each card always gets the same picture). The art is a small inline SVG, so nothing extra is downloaded.
 
 Width and height from Joomla's media field are written to the `<img>` to prevent layout shift. The first three cards load eagerly; the rest lazy-load.
 
@@ -162,15 +170,19 @@ Only non-default values are written; clearing everything removes the hash. Updat
 
 ## Extras
 
-Hidden visitors, switched on by default and off under **Advanced → Extras**.
+Switched on by default, off under **Advanced → Extras**.
 
 | Trigger | What happens |
 | --- | --- |
 | Type `fishie` or `claude` | The cleaner wrasse swims right to left *behind* the page: he only shows through the card photos in his lane, disappearing behind margins and text between them. Each photo card wiggles as he nibbles past. With images turned off, he swims freely across the module instead. |
 | Type `kokido` | Kokido pops up from the bottom of a random on-screen card's photo with a springy bounce. Point at him or tap him and he ducks. He leaves on his own after 5 seconds. |
-| Long-press **Clear filters** (touch) | One of the two at random. |
+| Type `hawke` | Hawke walks onto a card from its right edge, eats one of its tag chips, chews, and wanders off. The chip grows back. |
+| Type `tancho` | Tancho trots down the Tide Line spine in Tide Line, or along the top of the cards in every other layout, kicking up dust. |
+| **Do not press** button | One of the four at random. The wording is a setting. |
+| Long-press **Clear filters** (touch) | One of the four at random. |
+| Filters match nothing | Tancho reports in beside his mud puddle: "Found mud." (An empty category gets him too.) |
 
-Typing inside the search box or any form field never triggers them. Only one extra appears at a time. Under `prefers-reduced-motion`, both fade in and out in place instead of moving.
+Typing inside the search box or any form field never triggers them. Only one extra appears at a time. Under `prefers-reduced-motion`, they fade in and out in place instead of moving.
 
 ## Accessibility
 
@@ -204,23 +216,21 @@ media/js/tidewrack.js              readable source
 media/js/tidewrack.min.js          loaded on the site
 media/images/cleaner-wrasse.svg
 media/images/kokido-peek--240.webp
+media/images/hawke.svg, tancho.svg  Wayfin's goat and horse
 README.md, CHANGELOG.md, LICENSE.txt
 ```
 
-Source zip only (not installed): `build.py` and `tidewrack-demo.html`.
+Source zip only (not installed): `build.py`, `demo/` (`render.php`, `shell.html`, `sample.json`) and the built `tidewrack-demo.html`.
 
 ## Building
 
 ```
-pip install rjsmin rcssmin
+npm i -g terser csso-cli      # or: pip install rjsmin rcssmin
 python3 build.py              # build, then release through the CFD update server
 python3 build.py --no-release # build only
 ```
 
-`build.py` checks the version matches in the manifest, Dispatcher, CSS and JS headers, README and CHANGELOG; checks CSS property order; minifies; re-inlines the CSS, JS and Extras images into the demo; and writes `dist/mod_tidewrack-<version>.zip`, `dist/mod_tidewrack-<version>-source.zip` and `dist/tidewrack-demo.html`. It then calls `cfd_update.release('mod_tidewrack', …)` from the shared generator, found through `CFD_UPDATES` (default `../cfd-updates`); if the generator isn't there, it says so and stops after the build.
-
-```
-```
+`build.py` checks the version matches in the manifest, Dispatcher, CSS and JS headers, README and CHANGELOG; checks CSS property order; minifies (terser + csso when installed, as in Wayfin's build, else the Python minifiers); renders the demo from the real template with PHP (`demo/render.php` fills `demo/shell.html` with `demo/sample.json`, shifting the sample dates so the newest is always three days old) and inlines every image; and writes `dist/mod_tidewrack-<version>.zip`, `dist/mod_tidewrack-<version>-source.zip` and `dist/tidewrack-demo.html`. It then calls `cfd_update.release('mod_tidewrack', …)` from the shared generator, found through `CFD_UPDATES` (default `../cfd-updates`); if the generator isn't there, it says so and stops after the build.
 
 Assets load with classic `addStyleSheet()`/`addScript()` rather than the Web Asset Manager, which conflicted with T4 on the CFD sites. Data attributes all use the `data-twk-` prefix, so Bootstrap 4→5 shims that rename `data-*` attributes leave them alone.
 
@@ -242,5 +252,10 @@ Against the Sample Articles category (ID 13):
 - [ ] Each layout **saves** (pick it, Save, reopen: still selected) and shows on the site; Advanced → Module Style still saves independently.
 - [ ] All six layouts at desktop and phone widths, light and dark.
 - [ ] A shared filter link restores the view.
-- [ ] Extras on and off.
+- [ ] Extras on and off. With Extras on: `hawke` (chip eaten, grows back), `tancho` (Tide Line spine, and along the cards elsewhere), the *Do not press* button, and Tancho on a search that matches nothing. Change the button text and save.
+- [ ] No-Image Art: Tide, Shoreline and Gradient on the articles without images; waves drift only while hovering.
+- [ ] Fresh catch shows on articles newer than the day setting; 0 hides it.
+- [ ] Cast a line: lands on an article that matches the current filters, including one beyond *Show more*.
+- [ ] Open an article, come back: *Beachcombed* shows; *Smooth the sand* clears it.
+- [ ] Magazine List Columns 2: two columns on desktop, one below 992px.
 - [ ] Install on PHP below 8.2 or Joomla 4 is refused with a message (if you have such a test site).

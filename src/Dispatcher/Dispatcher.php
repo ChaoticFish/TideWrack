@@ -34,7 +34,7 @@ final class Dispatcher extends AbstractModuleDispatcher implements HelperFactory
         // Classic asset loading: WebAssetManager registration conflicted with T4 on the CFD sites.
         $doc   = $app->getDocument();
         $media = Uri::root(true) . '/media/mod_tidewrack/';
-        $ver   = '1.0.3';
+        $ver   = '1.1.0';
         $doc->addStyleSheet($media . 'css/tidewrack.min.css', ['version' => $ver]);
         $doc->addScript($media . 'js/tidewrack.min.js', ['version' => $ver], ['defer' => true]);
 

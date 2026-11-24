@@ -349,6 +349,42 @@ final class TidewrackHelper implements DatabaseAwareInterface
         return Uri::root(true) . '/' . implode('/', array_map('rawurlencode', explode('/', $rel)));
     }
 
+    /**
+     * Inline SVG for a card with no image: "tide" (layered waves) or "shore" (sun, hills, birds).
+     * Shapes vary by article ID, so a card always gets the same picture; colours come from CSS
+     * through --twk-hue on .twk-media. Decorative only (aria-hidden).
+     */
+    public static function art(string $kind, int $id): string
+    {
+        // Small deterministic "random" numbers in 0..1 from the article ID.
+        $r = static function (int $n) use ($id): float {
+            $x = ($id * 2654435761 + $n * 40503 + 12345) % 1000003;
+
+            return ($x % 1000) / 1000;
+        };
+        $f   = static fn (float $v): string => rtrim(rtrim(number_format($v, 1, '.', ''), '0'), '.');
+        $sun = '<circle class="twk-art-sun" cx="' . $f(60 + $r(1) * 280) . '" cy="' . $f(46 + $r(2) * 34) . '" r="' . $f(18 + $r(3) * 10) . '"/>';
+        $svg = '<svg class="twk-art twk-art--' . $kind . '" viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">' . $sun;
+
+        if ($kind === 'tide') {
+            foreach ([[1, 138, 11], [2, 168, 9], [3, 200, 7]] as [$n, $y, $a]) {
+                $y += (int) round(($r(10 + $n) - .5) * 16);
+                $d  = 'M0 ' . $y . 'q50 -' . $a . ' 100 0' . str_repeat('t100 0', 7) . 'V250H0Z';
+                $svg .= '<g class="twk-art-drift twk-art-d' . $n . '"><path class="twk-art-w' . $n . '" d="' . $d . '"/></g>';
+            }
+        } else {
+            $h1 = 150 + $r(4) * 30;
+            $h2 = 185 + $r(5) * 20;
+            $svg .= '<path class="twk-art-h1" d="M0 ' . $f($h1) . 'Q' . $f(80 + $r(6) * 80) . ' ' . $f($h1 - 50 - $r(7) * 30) . ' 220 ' . $f($h1 - 8) . 'T400 ' . $f($h1 - 20 + $r(8) * 30) . 'V250H0Z"/>';
+            $svg .= '<path class="twk-art-h2" d="M0 ' . $f($h2) . 'Q' . $f(160 + $r(9) * 120) . ' ' . $f($h2 - 40 - $r(10) * 25) . ' 400 ' . $f($h2 + 4) . 'V250H0Z"/>';
+            $bx = 70 + $r(11) * 220;
+            $by = 70 + $r(12) * 40;
+            $svg .= '<path class="twk-art-birds" d="M' . $f($bx) . ' ' . $f($by) . 'q5-5 10 0q5-5 10 0M' . $f($bx + 30) . ' ' . $f($by - 14) . 'q4-4 8 0q4-4 8 0M' . $f($bx + 14) . ' ' . $f($by + 16) . 'q3.5-3.5 7 0q3.5-3.5 7 0"/>';
+        }
+
+        return $svg . '</svg>';
+    }
+
     /** Remove {plugin tags} so shortcodes never leak into a summary. */
     public static function stripShortcodes(string $html): string
     {

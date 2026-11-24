@@ -1,0 +1,219 @@
+{
+ "tags": [
+  {
+   "id": 1,
+   "title": "Goats"
+  },
+  {
+   "id": 2,
+   "title": "Horses"
+  },
+  {
+   "id": 3,
+   "title": "Cats"
+  },
+  {
+   "id": 4,
+   "title": "Web Dev"
+  },
+  {
+   "id": 5,
+   "title": "Rescue"
+  },
+  {
+   "id": 6,
+   "title": "Farm Life"
+  }
+ ],
+ "items": [
+  {
+   "id": 1,
+   "title": "Hawke Learns to Open the Feed Room",
+   "tags": [
+    1,
+    6
+   ],
+   "pub": "2026-09-28 14:00:00",
+   "mod": "2026-10-09 08:00:00",
+   "read": 3,
+   "author": "Fishie",
+   "featured": true,
+   "intro": "<p>We installed a <strong>very secure</strong> latch. Hawke installed a <em>very secure</em> plan to defeat it. Day three of the latch war, and the goat is winning on points.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201600%201000%22%20width%3D%221600%22%20height%3D%221000%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%28200%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%28240%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%221120%22%20cy%3D%22320%22%20r%3D%22110%22%20fill%3D%22hsl%28260%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20700%20Q%20480%20500%20960%20680%20T%201600%20620%20V%201000%20H%200Z%22%20fill%3D%22hsl%28350%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20820%20Q%20720%20660%201600%20840%20V%201000%20H%200Z%22%20fill%3D%22hsl%280%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1600,
+   "h": 1000
+  },
+  {
+   "id": 2,
+   "title": "Tancho, Governor of the Back Pasture, Issues a Decree",
+   "tags": [
+    2,
+    6
+   ],
+   "pub": "2026-09-15 10:00:00",
+   "mod": "2026-09-15 10:00:00",
+   "read": 4,
+   "author": "Fishie",
+   "intro": "<p>All carrots now belong to the state. The state is Tancho. Appeals may be filed with the hay net, which has never once ruled against him.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201000%201400%22%20width%3D%221000%22%20height%3D%221400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%2830%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%2870%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221000%22%20height%3D%221400%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%22300%22%20cy%3D%22448%22%20r%3D%22110%22%20fill%3D%22hsl%2890%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20980%20Q%20300%20700%20600%20952%20T%201000%20868%20V%201400%20H%200Z%22%20fill%3D%22hsl%28180%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%201148%20Q%20450%20924%201000%201176%20V%201400%20H%200Z%22%20fill%3D%22hsl%28190%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1000,
+   "h": 1400
+  },
+  {
+   "id": 3,
+   "title": "Kokido, Apprentice Buccaneer, Claims the Keyboard",
+   "tags": [
+    3
+   ],
+   "pub": "2026-08-30 19:30:00",
+   "mod": "2026-10-08 21:00:00",
+   "read": 2,
+   "author": "Bai Tu",
+   "intro": "<p>Every pull request this week was reviewed by a kitten. Review comments included <em>asdfghjkl</em>, <strong>;;;;;;</strong>, and a nap across the trackpad.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201200%201200%22%20width%3D%221200%22%20height%3D%221200%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%28280%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%28320%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221200%22%20height%3D%221200%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%22840%22%20cy%3D%22384%22%20r%3D%22132%22%20fill%3D%22hsl%28340%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20840%20Q%20360%20600%20720%20816%20T%201200%20744%20V%201200%20H%200Z%22%20fill%3D%22hsl%2870%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20984%20Q%20540%20792%201200%201008%20V%201200%20H%200Z%22%20fill%3D%22hsl%2880%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "id": 4,
+   "title": "Why Our Modules Ship With Easter Eggs",
+   "tags": [
+    4
+   ],
+   "pub": "2026-08-12 09:00:00",
+   "mod": "2026-08-12 09:00:00",
+   "read": 6,
+   "author": "Cleaner Wrasse",
+   "intro": "<p>Because delight is a feature. Also because a cleaner wrasse insisted. This post explains the <strong>Extras</strong> switch, and why switching it off makes a small fish sad.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201600%20900%22%20width%3D%221600%22%20height%3D%22900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%28170%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%28210%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%221120%22%20cy%3D%22288%22%20r%3D%2299%22%20fill%3D%22hsl%28230%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20630%20Q%20480%20450%20960%20612%20T%201600%20558%20V%20900%20H%200Z%22%20fill%3D%22hsl%28320%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20738%20Q%20720%20594%201600%20756%20V%20900%20H%200Z%22%20fill%3D%22hsl%28330%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1600,
+   "h": 900
+  },
+  {
+   "id": 5,
+   "title": "A Short One",
+   "tags": [
+    5
+   ],
+   "pub": "2026-07-04 12:00:00",
+   "mod": "2026-07-04 12:00:00",
+   "read": 1,
+   "author": "Fishie",
+   "intro": "<p>Brief.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201600%201000%22%20width%3D%221600%22%20height%3D%221000%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%28340%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%2820%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%221120%22%20cy%3D%22320%22%20r%3D%22110%22%20fill%3D%22hsl%2840%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20700%20Q%20480%20500%20960%20680%20T%201600%20620%20V%201000%20H%200Z%22%20fill%3D%22hsl%28130%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20820%20Q%20720%20660%201600%20840%20V%201000%20H%200Z%22%20fill%3D%22hsl%28140%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1600,
+   "h": 1000
+  },
+  {
+   "id": 6,
+   "title": "The Night the Barn Cats Unionized and Demanded Better Tuna, Heated Beds, and a Formal Grievance Process",
+   "tags": [
+    3,
+    5,
+    6
+   ],
+   "pub": "2026-06-21 22:00:00",
+   "mod": "2026-10-09 07:30:00",
+   "read": 8,
+   "author": "Bai Tu",
+   "intro": "<p>It started with a single cat on the hay bales at midnight. By morning there were <strong>eleven of them</strong>, a list of demands scratched into the feed log, and a picket line between the barn and the house. Negotiations are ongoing. The tuna budget has already been revised upward twice, and the heated beds arrive Thursday.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201000%201300%22%20width%3D%221000%22%20height%3D%221300%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%2815%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%2855%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221000%22%20height%3D%221300%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%22600%22%20cy%3D%22416%22%20r%3D%22110%22%20fill%3D%22hsl%2875%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20910%20Q%20300%20650%20600%20884%20T%201000%20806%20V%201300%20H%200Z%22%20fill%3D%22hsl%28165%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%201066%20Q%20450%20858%201000%201092%20V%201300%20H%200Z%22%20fill%3D%22hsl%28175%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1000,
+   "h": 1300
+  },
+  {
+   "id": 7,
+   "title": "Rebuilding the Fence Line, One Post at a Time",
+   "tags": [
+    6
+   ],
+   "pub": "2026-05-10 08:00:00",
+   "mod": "2026-05-10 08:00:00",
+   "read": 5,
+   "author": "Fishie",
+   "intro": "<p>Forty-two posts, one post-hole digger, and a horse supervising from a safe distance. Notes on what we would do differently.</p>",
+   "img": null,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "id": 8,
+   "title": "Rescue Day: Two New Faces at the Sanctuary",
+   "tags": [
+    1,
+    5
+   ],
+   "pub": "2026-04-02 16:00:00",
+   "mod": "2026-09-01 12:00:00",
+   "read": 4,
+   "author": "Amy",
+   "intro": "<p>Two goats came home today. One is shy. The other has already eaten a clipboard. We love them both <em>immediately</em>.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201600%201100%22%20width%3D%221600%22%20height%3D%221100%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%2895%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%28135%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221600%22%20height%3D%221100%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%221120%22%20cy%3D%22352%22%20r%3D%22121%22%20fill%3D%22hsl%28155%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20770%20Q%20480%20550%20960%20748%20T%201600%20682%20V%201100%20H%200Z%22%20fill%3D%22hsl%28245%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20902%20Q%20720%20726%201600%20924%20V%201100%20H%200Z%22%20fill%3D%22hsl%28255%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1600,
+   "h": 1100
+  },
+  {
+   "id": 9,
+   "title": "Bootstrap, Vanilla JS, and Knowing When to Stop",
+   "tags": [
+    4
+   ],
+   "pub": "2026-03-18 11:00:00",
+   "mod": "2026-03-18 11:00:00",
+   "read": 7,
+   "author": "Cleaner Wrasse",
+   "intro": "<p>Lightweight is a decision you make over and over. A look at how Tidewrack keeps its weight down: no libraries, no build step on the site, and filters that run in the browser.</p>",
+   "img": null,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "id": 10,
+   "title": "Winter Prep & the \"Great Hay Count\" of 2025",
+   "tags": [
+    2,
+    6
+   ],
+   "pub": "2025-11-20 09:00:00",
+   "mod": "2025-12-02 09:00:00",
+   "read": 3,
+   "author": "Fishie",
+   "intro": "<p>We counted the hay. Then we counted it again, because Tancho was standing on the clipboard.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201600%201000%22%20width%3D%221600%22%20height%3D%221000%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%2845%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%2885%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%221120%22%20cy%3D%22320%22%20r%3D%22110%22%20fill%3D%22hsl%28105%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20700%20Q%20480%20500%20960%20680%20T%201600%20620%20V%201000%20H%200Z%22%20fill%3D%22hsl%28195%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%20820%20Q%20720%20660%201600%20840%20V%201000%20H%200Z%22%20fill%3D%22hsl%28205%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1600,
+   "h": 1000
+  },
+  {
+   "id": 11,
+   "title": "Designing the Contact Sheet Layout",
+   "tags": [
+    4
+   ],
+   "pub": "2025-10-05 15:00:00",
+   "mod": "2026-02-14 10:00:00",
+   "read": 5,
+   "author": "Cleaner Wrasse",
+   "intro": "<p>Sprocket holes, grease pencil, and frame numbers. How a darkroom habit turned into a card layout.</p>",
+   "img": null,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "id": 12,
+   "title": "Hawke and Tancho: An Unlikely Friendship",
+   "tags": [
+    1,
+    2,
+    5
+   ],
+   "pub": "2025-09-01 13:00:00",
+   "mod": "2025-09-01 13:00:00",
+   "read": 4,
+   "author": "Amy",
+   "intro": "<p>A goat and a horse walk into a pasture. Nobody walks out alone after that.</p>",
+   "img": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201400%201400%22%20width%3D%221400%22%20height%3D%221400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22hsl%28130%2C70%25%2C72%25%29%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22hsl%28170%2C80%25%2C88%25%29%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%221400%22%20height%3D%221400%22%20fill%3D%22url%28%23s%29%22/%3E%3Ccircle%20cx%3D%22980%22%20cy%3D%22448%22%20r%3D%22154%22%20fill%3D%22hsl%28190%2C95%25%2C85%25%29%22/%3E%3Cpath%20d%3D%22M0%20980%20Q%20420%20700%20840%20952%20T%201400%20868%20V%201400%20H%200Z%22%20fill%3D%22hsl%28280%2C35%25%2C42%25%29%22/%3E%3Cpath%20d%3D%22M0%201148%20Q%20630%20924%201400%201176%20V%201400%20H%200Z%22%20fill%3D%22hsl%28290%2C40%25%2C30%25%29%22/%3E%3C/svg%3E",
+   "w": 1400,
+   "h": 1400
+  }
+ ]
+}

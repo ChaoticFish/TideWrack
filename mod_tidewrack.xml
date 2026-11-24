@@ -6,7 +6,7 @@
 	<creationDate>2026-10</creationDate>
 	<copyright>(C) 2026 Chaotic Fish Design Studio</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>1.0.3</version>
+	<version>1.1.0</version>
 	<description>MOD_TIDEWRACK_XML_DESCRIPTION</description>
 	<scriptfile>script.php</scriptfile>
 	<namespace path="src">ChaoticFishDesign\Module\Tidewrack</namespace>
@@ -89,6 +89,10 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field name="cast_line" type="radio" default="1" label="MOD_TIDEWRACK_CAST_LABEL" description="MOD_TIDEWRACK_CAST_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 				<field name="url_state" type="radio" default="1" showon="show_filters:1" label="MOD_TIDEWRACK_URLSTATE_LABEL" description="MOD_TIDEWRACK_URLSTATE_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
@@ -109,6 +113,10 @@
 					<option value="3">3</option>
 					<option value="4">4</option>
 				</field>
+				<field name="list_columns" type="list" default="1" showon="twk_layout:list[OR]view_toggle:1" label="MOD_TIDEWRACK_LISTCOLS_LABEL" description="MOD_TIDEWRACK_LISTCOLS_DESC">
+					<option value="1">1</option>
+					<option value="2">2</option>
+				</field>
 				<field name="view_toggle" type="radio" default="0" showon="twk_layout!:list" label="MOD_TIDEWRACK_VIEWTOGGLE_LABEL" description="MOD_TIDEWRACK_VIEWTOGGLE_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
@@ -122,6 +130,16 @@
 				</field>
 				<field name="intro_length" type="number" default="180" min="0" max="2000" step="10" filter="integer" label="MOD_TIDEWRACK_INTROLEN_LABEL" description="MOD_TIDEWRACK_INTROLEN_DESC" />
 				<field name="show_image" type="radio" default="1" label="MOD_TIDEWRACK_IMAGE_LABEL">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="fallback_art" type="list" default="tide" showon="show_image:1" label="MOD_TIDEWRACK_ART_LABEL" description="MOD_TIDEWRACK_ART_DESC">
+					<option value="tide">MOD_TIDEWRACK_ART_TIDE</option>
+					<option value="shore">MOD_TIDEWRACK_ART_SHORE</option>
+					<option value="gradient">MOD_TIDEWRACK_ART_GRADIENT</option>
+				</field>
+				<field name="fresh_days" type="number" default="14" min="0" max="365" step="1" filter="integer" label="MOD_TIDEWRACK_FRESH_LABEL" description="MOD_TIDEWRACK_FRESH_DESC" />
+				<field name="read_marks" type="radio" default="1" label="MOD_TIDEWRACK_READMARKS_LABEL" description="MOD_TIDEWRACK_READMARKS_DESC">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
@@ -169,6 +187,11 @@
 					<option value="1">JYES</option>
 					<option value="0">MOD_TIDEWRACK_EXTRAS_OFF</option>
 				</field>
+				<field name="extras_button" type="radio" default="1" showon="extras:1" label="MOD_TIDEWRACK_STAFFBTN_LABEL" description="MOD_TIDEWRACK_STAFFBTN_DESC">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="extras_button_text" type="text" default="" filter="string" maxlength="40" showon="extras:1[AND]extras_button:1" hint="MOD_TIDEWRACK_STAFF" label="MOD_TIDEWRACK_STAFFTEXT_LABEL" description="MOD_TIDEWRACK_STAFFTEXT_DESC" />
 				<field name="moduleclass_sfx" type="textarea" rows="2" label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL" />
 			</fieldset>
 

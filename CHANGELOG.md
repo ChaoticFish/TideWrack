@@ -2,6 +2,22 @@
 
 All notable changes to Tidewrack (mod_tidewrack).
 
+## 1.1.0 — 2026-11-10
+
+### Added
+- **No-image art:** articles with no image get a generated picture instead of a plain wash: *Tide* (layered waves that drift while you hover the card) or *Shoreline* (sun, hills and birds). Shapes and colours vary by article and stay the same for each. *Gradient* keeps the old look. Default: Tide.
+- **Fresh catch badge** on articles published within a set number of days (default 14; 0 turns it off). A grease-pencil star in Contact Sheet.
+- **Cast a line:** a button that picks a random article from the current filters, brings it into view, gives it a wiggle and announces it.
+- **Bring in the next tide:** Show More is renamed, a wave rolls across the button, and new cards rise in one after another.
+- **Beachcombed marks:** articles a visitor has opened get a small mark, stored only in their browser; *Smooth the sand* clears them.
+- **Magazine List columns:** one or two (two drop back to one below 992px).
+- **Tancho reports in** when nothing matches the filters ("Found mud."), and when a category is empty. Part of Extras.
+- **Extras:** Hawke walks onto a card and eats a tag chip (it grows back); Tancho trots down the Tide Line spine, or along the top of the cards in other layouts. Type `hawke` or `tancho`.
+- **Staff button:** a visible button, labelled *Do not press* by default (the wording is a setting), that sends a random member of the staff through.
+
+### Changed
+- `build.py` renders the demo from the real template (`demo/render.php`, `demo/shell.html`, `demo/sample.json`) and uses terser and csso when installed, like Wayfin's build.
+
 ## 1.0.3 — 2026-11-10
 
 ### Fixed

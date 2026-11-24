@@ -1,5 +1,5 @@
 /*!
- * Tidewrack 1.0.3 — Chaotic Fish Design Studio
+ * Tidewrack 1.1.0 — Chaotic Fish Design Studio
  * Client-side tag filtering, search, sort and reveal for mod_tidewrack.
  * No dependencies. Every module instance on a page runs independently.
  */
@@ -15,6 +15,26 @@
 		title_asc: function (a, b) { return a.title.localeCompare(b.title) || a.i - b.i; }
 	};
 	var instances = [];
+	var READ_KEY = 'twk-beachcombed';
+
+	/** Read marks live in the visitor's own browser; storage can be missing or blocked, so every access is guarded. */
+	var Sand = {
+		load: function () {
+			try {
+				var list = JSON.parse(window.localStorage.getItem(READ_KEY) || '[]');
+				return Array.isArray(list) ? list.map(String) : [];
+			} catch (e) { return []; }
+		},
+		add: function (id) {
+			var list = this.load();
+			if (list.indexOf(id) !== -1) { return; }
+			list.push(id);
+			try { window.localStorage.setItem(READ_KEY, JSON.stringify(list.slice(-500))); } catch (e) { /* private mode */ }
+		},
+		clear: function () {
+			try { window.localStorage.removeItem(READ_KEY); } catch (e) { /* private mode */ }
+		}
+	};
 
 	function fmt(str) {
 		var args = Array.prototype.slice.call(arguments, 1);
@@ -42,8 +62,10 @@
 		this.s = {
 			showing: root.getAttribute('data-twk-s-showing') || 'Showing %1$s of %2$s',
 			one: root.getAttribute('data-twk-s-showing-one') || 'Showing 1 of 1',
-			none: root.getAttribute('data-twk-s-none') || ''
+			none: root.getAttribute('data-twk-s-none') || '',
+			caught: root.getAttribute('data-twk-s-caught') || '%s'
 		};
+		this.readMarks = root.getAttribute('data-twk-readmarks') === '1';
 
 		this.cards = Array.prototype.map.call(this.list.querySelectorAll('[data-twk-card]'), function (el, i) {
 			return {
@@ -63,6 +85,8 @@
 		this.empty$ = root.querySelector('[data-twk-empty]');
 		this.status$ = root.querySelector('[data-twk-status]');
 		this.clear$ = root.querySelector('[data-twk-clear]');
+		this.cast$ = root.querySelector('[data-twk-cast]');
+		this.forget$ = root.querySelector('[data-twk-forget]');
 
 		var bar = root.querySelector('.twk-bar');
 		if (bar) { bar.hidden = false; }
@@ -81,6 +105,7 @@
 		root.classList.add('twk-ready');
 		this.apply(false);
 		this.watchMasonry();
+		this.markRead();
 	}
 
 	Tidewrack.prototype.bind = function () {
@@ -89,7 +114,10 @@
 		var timer;
 
 		root.addEventListener('click', function (ev) {
-			var t = ev.target.closest('[data-twk-chip],[data-twk-tagbtn],[data-twk-modebtn],[data-twk-view],[data-twk-clear],[data-twk-more]');
+			var link = ev.target.closest('.twk-link');
+			if (link && self.readMarks) { self.remember(link); }
+
+			var t = ev.target.closest('[data-twk-chip],[data-twk-tagbtn],[data-twk-modebtn],[data-twk-view],[data-twk-clear],[data-twk-more],[data-twk-cast],[data-twk-forget],[data-twk-staff]');
 			if (!t || !root.contains(t)) { return; }
 
 			if (t.hasAttribute('data-twk-chip') || t.hasAttribute('data-twk-tagbtn')) {
@@ -111,7 +139,22 @@
 				self.apply(true);
 			} else if (t.hasAttribute('data-twk-more')) {
 				self.showMore();
+			} else if (t.hasAttribute('data-twk-staff')) {
+				Extras.summon('random', self);
+			} else if (t.hasAttribute('data-twk-cast')) {
+				self.castLine();
+			} else if (t.hasAttribute('data-twk-forget')) {
+				Sand.clear();
+				instances.forEach(function (inst) { inst.markRead(); });
+				var first = self.root.querySelector('[data-twk-chip],[data-twk-q],[data-twk-cast],.twk-link');
+				if (first) { first.focus(); }
 			}
+		});
+
+		// Middle-click and "open in new tab" count as reading too.
+		root.addEventListener('auxclick', function (ev) {
+			var link = ev.target.closest('.twk-link');
+			if (link && self.readMarks && ev.button === 1) { self.remember(link); }
 		});
 
 		if (this.q$) {
@@ -227,10 +270,70 @@
 		this.cards.forEach(function (c) { ro.observe(c.el); });
 	};
 
+	/* ---------- Beachcombed marks ---------- */
+
+	Tidewrack.prototype.remember = function (link) {
+		var card = link.closest('[data-twk-card]');
+		if (!card) { return; }
+		Sand.add(card.getAttribute('data-twk-card'));
+		this.markRead();
+	};
+
+	Tidewrack.prototype.markRead = function () {
+		if (!this.readMarks) { return; }
+		var read = Sand.load();
+		var any = false;
+		this.cards.forEach(function (c) {
+			var on = read.indexOf(c.el.getAttribute('data-twk-card')) !== -1;
+			var mark = c.el.querySelector('[data-twk-readmark]');
+			c.el.classList.toggle('twk-card--read', on);
+			if (mark) { mark.hidden = !on; }
+			any = any || on;
+		});
+		if (this.forget$) { this.forget$.hidden = !any; }
+	};
+
+	/* ---------- Cast a line: bring a random article from the current filters into view ---------- */
+
+	Tidewrack.prototype.castLine = function () {
+		var self = this;
+		var pool = this.hits.filter(function (c) { return c !== self.lastCaught; });
+		if (!pool.length) { pool = this.hits; }
+		if (!pool.length) { return; }
+
+		var c = pool[Math.floor(Math.random() * pool.length)];
+		var at = this.hits.indexOf(c);
+		this.lastCaught = c;
+
+		// Reveal enough Show More steps to include the catch.
+		if (this.shown > 0 && at >= this.shown) {
+			this.shown = this.initial + Math.ceil((at + 1 - this.initial) / this.step) * this.step;
+			this.apply(true);
+		}
+
+		var link = c.el.querySelector('.twk-link');
+		c.el.scrollIntoView({ block: 'center', behavior: reduced.matches ? 'auto' : 'smooth' });
+		if (link) { link.focus({ preventScroll: true }); }
+		c.el.classList.remove('twk-caught');
+		void c.el.offsetWidth;
+		c.el.classList.add('twk-caught');
+		setTimeout(function () { c.el.classList.remove('twk-caught'); }, 1600);
+		if (this.status$ && link) { this.status$.textContent = fmt(this.s.caught, link.textContent.trim()); }
+	};
+
 	Tidewrack.prototype.showMore = function () {
 		var before = this.visible.length;
+		var btn = this.more$;
 		this.shown += this.step;
+		this.stagger = true;
+		if (btn && !reduced.matches) {
+			btn.classList.remove('twk-more--rolling');
+			void btn.offsetWidth;
+			btn.classList.add('twk-more--rolling');
+			setTimeout(function () { btn.classList.remove('twk-more--rolling'); }, 900);
+		}
 		this.apply(true);
+		this.stagger = false;
 		// Move focus to the first newly revealed card so keyboard users land on the new content.
 		var next = this.visible[before];
 		if (next) {
@@ -253,6 +356,7 @@
 		var hits = this.cards.filter(function (c) { return self.matches(c); }).sort(SORTS[this.sort] || SORTS.pub_desc);
 		var misses = this.cards.filter(function (c) { return hits.indexOf(c) === -1; });
 		var limit = this.shown > 0 ? this.shown : hits.length;
+		this.hits = hits;
 		this.visible = hits.slice(0, limit);
 
 		var frag = document.createDocumentFragment();
@@ -291,6 +395,7 @@
 		if (this.clear$) { this.clear$.setAttribute('aria-disabled', this.tags.length || this.q ? 'false' : 'true'); }
 
 		if (this.empty$) { this.empty$.hidden = hits.length !== 0; }
+		if (this.cast$) { this.cast$.disabled = hits.length === 0; }
 		if (this.more$) { this.more$.hidden = hits.length <= limit; }
 		if (this.status$) { this.status$.textContent = !hits.length ? this.s.none : hits.length === 1 ? this.s.one : fmt(this.s.showing, this.visible.length, hits.length); }
 
@@ -298,6 +403,8 @@
 
 		if (!motion) { return; }
 
+		var fresh = 0;
+		var stagger = this.stagger;
 		this.visible.forEach(function (c) {
 			var was = first.get(c.el);
 			if (was) {
@@ -308,7 +415,11 @@
 					c.el.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
 				}
 			} else {
-				c.el.animate([{ opacity: 0, transform: 'translateY(12px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'ease-out' });
+				// The next tide rolls in: new cards rise in one after another.
+				c.el.animate(
+					[{ opacity: 0, transform: stagger ? 'translateY(28px) rotate(-1deg)' : 'translateY(12px) scale(.98)' }, { opacity: 1, transform: 'none' }],
+					{ duration: stagger ? 520 : 320, delay: stagger ? fresh++ * 70 : 0, easing: 'cubic-bezier(.2,.9,.3,1.2)', fill: 'backwards' }
+				);
 			}
 		});
 	};
@@ -521,11 +632,149 @@
 			setTimeout(duck, 5000);
 		},
 
+		img: function (inst, name) {
+			return inst.root.getAttribute('data-twk-img-' + name) || inst.media + 'images/' + name + '.svg';
+		},
+
+		/** Hawke walks in from the card's right edge, eats a tag chip, and wanders off. The chip grows back. */
+		hawke: function (inst) {
+			var self = this;
+			var cards = this.onScreenCards(inst).filter(function (c) { return c.el.querySelector('.twk-tag'); });
+			if (!cards.length) { return this.done(); }
+
+			var card = cards[Math.floor(Math.random() * cards.length)].el;
+			var tags = card.querySelectorAll('.twk-tag');
+			var tag = tags[Math.floor(Math.random() * tags.length)];
+			var cb = card.getBoundingClientRect();
+			var tb = tag.getBoundingClientRect();
+			var gw = 46;
+			var gh = gw * 24 / 32;
+			var goat = document.createElement('img');
+			goat.src = this.img(inst, 'hawke');
+			goat.alt = '';
+			goat.className = 'twk-hawke';
+			goat.setAttribute('aria-hidden', 'true');
+			goat.style.top = (tb.bottom - cb.top - gh + 2) + 'px';
+			card.appendChild(goat);
+
+			var startX = cb.width - gw * 0.4;
+			var eatX = tb.right - cb.left - 6;
+			var walk = Math.max(500, (startX - eatX) * 9);
+
+			function chomp() {
+				tag.classList.add('twk-tag--chomp');
+			}
+			function regrow() {
+				tag.classList.remove('twk-tag--chomp');
+				tag.classList.add('twk-tag--regrow');
+				setTimeout(function () { tag.classList.remove('twk-tag--regrow'); }, 600);
+			}
+
+			if (reduced.matches) {
+				goat.style.transform = 'translateX(' + eatX + 'px) scaleX(-1)';
+				goat.animate([{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2600 }).onfinish = function () {
+					goat.remove(); regrow(); self.done();
+				};
+				setTimeout(chomp, 700);
+				return;
+			}
+
+			// The artwork faces right; scaleX(-1) points him left, toward the chip.
+			goat.animate([
+				{ transform: 'translateX(' + startX + 'px) scaleX(-1)', opacity: 0 },
+				{ transform: 'translateX(' + (startX - 12) + 'px) scaleX(-1)', opacity: 1, offset: .1 },
+				{ transform: 'translateX(' + eatX + 'px) scaleX(-1)', opacity: 1 }
+			], { duration: walk, easing: 'ease-out', fill: 'forwards' }).onfinish = function () {
+				goat.classList.add('is-chewing');
+				chomp();
+				setTimeout(function () {
+					goat.classList.remove('is-chewing');
+					goat.animate([
+						{ transform: 'translateX(' + eatX + 'px) scaleX(1)', opacity: 1 },
+						{ transform: 'translateX(' + startX + 'px) scaleX(1)', opacity: 1, offset: .85 },
+						{ transform: 'translateX(' + (startX + 10) + 'px) scaleX(1)', opacity: 0 }
+					], { duration: walk, easing: 'ease-in', fill: 'forwards' }).onfinish = function () {
+						goat.remove();
+						setTimeout(function () { regrow(); self.done(); }, 900);
+					};
+				}, 1300);
+			};
+		},
+
+		/** Tancho trots down the Tide Line spine, or along the top of the first row he can see, kicking up dust. */
+		tancho: function (inst) {
+			var self = this;
+			var cards = this.onScreenCards(inst);
+			if (!cards.length) { cards = inst.visible.slice(0, 1); }
+			if (!cards.length) { return this.done(); }
+
+			var root = inst.root;
+			var rb = root.getBoundingClientRect();
+			var hw = 54;
+			var hh = hw * 24 / 32;
+			var horse = document.createElement('img');
+			var spine = inst.view === 'tideline';
+			var from;
+			var to;
+
+			horse.src = this.img(inst, 'tancho');
+			horse.alt = '';
+			horse.className = 'twk-tancho-run';
+			horse.setAttribute('aria-hidden', 'true');
+
+			if (spine) {
+				var items = inst.list.getBoundingClientRect();
+				var line = window.getComputedStyle(inst.list, '::before');
+				var x = items.left - rb.left + (parseFloat(line.left) || items.width / 2) - hw / 2;
+				var top = Math.max(items.top, 0) - rb.top;
+				var bottom = Math.min(items.bottom, window.innerHeight) - rb.top - hh;
+				if (window.getComputedStyle(inst.list, '::before').transform !== 'none') { x += 1.5; }
+				horse.style.left = x + 'px';
+				horse.style.top = '0px';
+				from = 'translateY(' + top + 'px)';
+				to = 'translateY(' + Math.max(top + 120, bottom) + 'px)';
+			} else {
+				var row = cards[0].el.getBoundingClientRect();
+				horse.style.left = '0px';
+				horse.style.top = (row.top - rb.top - hh + 3) + 'px';
+				from = 'translateX(' + (-hw) + 'px)';
+				to = 'translateX(' + root.clientWidth + 'px)';
+			}
+			root.appendChild(horse);
+
+			if (reduced.matches) {
+				horse.style.transform = spine ? from : 'translateX(' + (root.clientWidth / 2 - hw / 2) + 'px)';
+				horse.animate([{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2600 }).onfinish = function () {
+					horse.remove(); self.done();
+				};
+				return;
+			}
+
+			var dur = spine ? 3200 : Math.max(3400, root.clientWidth * 4.5);
+			horse.animate([{ transform: from }, { transform: to }], { duration: dur, easing: 'linear', fill: 'forwards' }).onfinish = function () {
+				horse.remove(); self.done();
+			};
+
+			// Dust kicked up behind him every few strides.
+			var puffs = 0;
+			var timer = setInterval(function () {
+				if (!horse.isConnected || puffs++ > 30) { clearInterval(timer); return; }
+				var hb = horse.getBoundingClientRect();
+				var dust = document.createElement('span');
+				dust.className = 'twk-dust';
+				dust.setAttribute('aria-hidden', 'true');
+				dust.style.left = (spine ? hb.left - rb.left + hw / 2 : hb.left - rb.left + 6) + 'px';
+				dust.style.top = (spine ? hb.top - rb.top + 4 : hb.bottom - rb.top - 6) + 'px';
+				root.appendChild(dust);
+				setTimeout(function () { dust.remove(); }, 800);
+			}, 160);
+		},
+
 		summon: function (who, inst) {
 			inst = inst || this.target();
 			if (!inst || this.busy) { return; }
 			this.busy = true;
-			if (who === 'random') { who = Math.random() < 0.5 ? 'wrasse' : 'kokido'; }
+			if (who === 'random') { who = ['wrasse', 'kokido', 'hawke', 'tancho'][Math.floor(Math.random() * 4)]; }
 			this[who](inst);
 		},
 
@@ -541,6 +790,8 @@
 				self.buffer = (self.buffer + ev.key.toLowerCase()).slice(-12);
 				if (/(fishie|claude)$/.test(self.buffer)) { self.buffer = ''; self.summon('wrasse'); }
 				else if (/kokido$/.test(self.buffer)) { self.buffer = ''; self.summon('kokido'); }
+				else if (/hawke$/.test(self.buffer)) { self.buffer = ''; self.summon('hawke'); }
+				else if (/tancho$/.test(self.buffer)) { self.buffer = ''; self.summon('tancho'); }
 			});
 
 			// Touch: long-press the Clear button.
